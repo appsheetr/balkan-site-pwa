@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balkan Yapı - Yönetici Paneli</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1018/1018525.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            light: '#eff6ff',
+                            DEFAULT: '#3b82f6',
+                            dark: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased font-sans h-screen overflow-hidden">
+
+    <!-- ADMIN LOGIN SCREEN -->
+    <div id="adminLoginScreen" class="fixed inset-0 bg-brand-light flex items-center justify-center p-4 z-[999]">
+        <div class="w-full max-w-sm p-8 bg-white rounded-2xl shadow-xl border border-blue-50">
+            <div class="text-center mb-6">
+                <div class="relative w-16 h-16 mx-auto mb-3 flex items-center justify-center bg-blue-50 rounded-2xl shadow-inner">
+                    <svg class="w-9 h-9 text-brand" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.099l-10 8.901h3v11h14v-11h3l-10-8.901z"/>
+                    </svg>
+                </div>
+                <h1 class="text-xl font-bold text-brand-dark tracking-tight">Yönetici Girişi</h1>
+                <p class="text-xs text-gray-500 mt-1">Balkan Yapı Sitesi Yönetim Paneli</p>
+            </div>
+            <form onsubmit="event.preventDefault(); handleAdminLogin();">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Yönetici Telefonu</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg font-semibold">+90</span>
+                        <input type="tel" id="adminLoginPhone" placeholder="5XX XXX XX XX" maxlength="10" class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-brand outline-none" required>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
+                    <input type="password" id="adminLoginPass" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                </div>
+                <button type="submit" id="adminLoginBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md">Giriş Yap</button>
+                <p id="adminLoginError" class="text-xs text-red-500 text-center mt-3 hidden">Telefon veya şifre hatalı.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL ROOT -->
+    <div id="adminPanelRoot" class="hidden h-full flex">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-brand-dark w-64 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-50 absolute md:relative h-full shadow-2xl">
+        <div class="h-16 flex items-center justify-center border-b border-blue-900 px-4">
+            <div class="flex items-center gap-3 text-white">
+                <svg class="w-8 h-8 text-brand" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.099l-10 8.901h3v11h14v-11h3l-10-8.901z"/>
+                    <g transform="translate(3, 4.5) scale(0.75)">
+                        <path fill="white" d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V18h14v-1.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </g>
+                </svg>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Balkan Yapı</h1>
+                    <p class="text-xs text-blue-300">Yönetici Paneli</p>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden ml-auto text-blue-300 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <button onclick="switchSection('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 bg-brand text-white rounded-lg transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                Özet Ekranı
+            </button>
+            <button onclick="switchSection('users')" id="nav-users" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                Sakin Onayları
+            </button>
+            <button onclick="switchSection('residents')" id="nav-residents" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Site Sakinleri
+            </button>
+            <button onclick="switchSection('finance')" id="nav-finance" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Gelir / Giderler
+            </button>
+            <button onclick="switchSection('announcements')" id="nav-announcements" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+                Duyurular & Haberler
+            </button>
+            <button onclick="switchSection('complaints')" id="nav-complaints" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+                Şikayet & Öneriler
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-blue-900">
+            <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Çıkış Yap
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-gray-50">
+        
+        <!-- Header -->
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 shrink-0 z-10">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-500 hover:text-brand transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h2 id="pageTitle" class="text-xl font-bold text-brand-dark">Özet Ekranı</h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-medium text-gray-600 hidden sm:block">Hoşgeldiniz, Yönetici</span>
+                <div class="w-9 h-9 bg-brand-light text-brand rounded-full flex items-center justify-center font-bold border border-blue-200">
+                    Y
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 lg:p-8">
+            <div class="max-w-6xl mx-auto space-y-6">
+                
+                <!-- SECTION: DASHBOARD -->
+                <section id="section-dashboard" class="block">
+                    <!-- TIKLANABİLİR KARTLAR EKLENDİ -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        
+                        <div onclick="switchSection('users')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:shadow-md hover:border-blue-200 transition">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">Onay Bekleyen</p>
+                                <p id="statPendingCount" class="text-3xl font-bold text-orange-500 mt-1">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></div>
+                        </div>
+
+                        <div onclick="switchSection('finance')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:shadow-md hover:border-blue-200 transition">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">Kasa Durumu</p>
+                                <p id="statBalance" class="text-3xl font-bold text-green-600 mt-1">0 ₺</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                        </div>
+
+                        <div onclick="switchSection('announcements')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:shadow-md hover:border-blue-200 transition">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">Aktif Duyurular</p>
+                                <p id="statAnnounceCount" class="text-3xl font-bold text-brand mt-1">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-50 text-brand rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg></div>
+                        </div>
+
+                        <div onclick="switchSection('complaints')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:shadow-md hover:border-blue-200 transition">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">Şikayet & Öneri</p>
+                                <p id="statComplaintCount" class="text-3xl font-bold text-red-500 mt-1">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: USER APPROVALS -->
+                <section id="section-users" class="hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 border-b border-gray-100">
+                            <h3 class="font-bold text-gray-800">Sakin Onay Bekleme Listesi</h3>
+                        </div>
+                        <div class="p-5 space-y-4" id="pendingUsersList"></div>
+                    </div>
+                </section>
+
+                <!-- SECTION: RESIDENTS (BLOKLARA GÖRE GRUPLANMIŞ EKRAN) -->
+                <section id="section-residents" class="hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800">Kayıtlı Tüm Site Sakinleri (Blok Gruplu)</h3>
+                            <span id="approvedCountBadge" class="bg-blue-100 text-brand font-semibold text-xs px-2.5 py-1 rounded-full">0 Sakin</span>
+                        </div>
+                        <div class="p-6 space-y-8" id="residentsGroupContainer"></div>
+                    </div>
+                </section>
+
+                <!-- SECTION: FINANCE -->
+                <section id="section-finance" class="hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                <h3 class="font-bold text-gray-800 mb-4">Yeni İşlem Ekle</h3>
+                                <form id="financeForm" onsubmit="event.preventDefault(); handleAddTransaction();">
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">İşlem Türü</label>
+                                        <select id="finType" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand">
+                                            <option value="Gelir">Gelir (Aidat vb.)</option>
+                                            <option value="Gider">Gider (Fatura, Bakım vb.)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tutar (₺)</label>
+                                        <input type="number" id="finAmount" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+                                        <input type="text" id="finDesc" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tahsil Eden / Alan</label>
+                                        <input type="text" id="finCollector" placeholder="Örn: Yönetim / Firma Adı" class="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                                    </div>
+                                    <div class="mb-5">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Makbuz / Fatura Görseli</label>
+                                        <input type="file" id="finReceipt" accept="image/*, application/pdf" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-brand hover:file:bg-blue-100 border border-gray-300 rounded-lg outline-none bg-white">
+                                    </div>
+                                    <button type="submit" id="finSubmitBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-medium py-2.5 rounded-lg transition">İşlemi Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
+                                <div class="p-5 border-b border-gray-100">
+                                    <h3 class="font-bold text-gray-800">Finans Geçmişi</h3>
+                                </div>
+                                <div class="p-0 overflow-x-auto">
+                                    <table class="w-full text-sm text-left text-gray-500">
+                                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3">Tarih</th>
+                                                <th class="px-4 py-3">Açıklama</th>
+                                                <th class="px-4 py-3">Tür</th>
+                                                <th class="px-4 py-3 text-center">Makbuz</th>
+                                                <th class="px-4 py-3 text-right">Tutar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="financeTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION: ANNOUNCEMENTS -->
+                <section id="section-announcements" class="hidden">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                        <h3 class="font-bold text-gray-800 mb-4">Yeni Duyuru Yayınla</h3>
+                        <form id="announcementForm" onsubmit="event.preventDefault(); handleAddAnnouncement();">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Duyuru Başlığı</label>
+                                <input type="text" id="annTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Detaylı Açıklama</label>
+                                <textarea id="annContent" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></textarea>
+                            </div>
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Görsel (Opsiyonel)</label>
+                                <input type="file" id="annImage" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-brand hover:file:bg-blue-100 border border-gray-300 rounded-lg outline-none bg-white">
+                            </div>
+                            <button type="submit" id="annSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2 px-6 rounded-lg transition">Duyuruyu Yayınla</button>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 border-b border-gray-100">
+                            <h3 class="font-bold text-gray-800">Yayınlanan Duyurular</h3>
+                        </div>
+                        <div class="p-5 space-y-3" id="announcementsList"></div>
+                    </div>
+                </section>
+
+                <!-- SECTION: COMPLAINTS -->
+                <section id="section-complaints" class="hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 border-b border-gray-100">
+                            <h3 class="font-bold text-gray-800">Gelen Şikayet ve Öneriler</h3>
+                        </div>
+                        <div class="p-5 space-y-4" id="complaintsList"></div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXF8oiGvPCvUCwq1RVKHsttIsOAnOb4kM",
+            authDomain: "balkansitepwa.firebaseapp.com",
+            projectId: "balkansitepwa",
+            storageBucket: "balkansitepwa.firebasestorage.app",
+            messagingSenderId: "449921654999",
+            appId: "1:449921654999:web:73e35ca97ef5b7d32d9092"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const ADMIN_PHONE = "5305033461"; 
+        const ADMIN_PASS = "Admin123";    
+
+        const CLOUDINARY_CLOUD_NAME = "xtu9pdgv";
+        const CLOUDINARY_UPLOAD_PRESET = "balkan_site_unsigned";
+        const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            formData.append('folder', 'receipts');
+
+            const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData?.error?.message || 'Cloudinary yükleme hatası');
+            }
+
+            const data = await response.json();
+            return data.secure_url;
+        }
+
+        const sections = ['dashboard', 'users', 'residents', 'finance', 'announcements', 'complaints'];
+        const titles = {
+            'dashboard': 'Özet Ekranı',
+            'users': 'Sakin Onayları',
+            'residents': 'Site Sakinleri (Bloklu)',
+            'finance': 'Gelir / Gider Yönetimi',
+            'announcements': 'Duyurular',
+            'complaints': 'Şikayet ve Öneriler'
+        };
+
+        function switchSection(sectionId) {
+            sections.forEach(sec => {
+                document.getElementById('section-' + sec).classList.add('hidden');
+                document.getElementById('section-' + sec).classList.remove('block');
+                const btn = document.getElementById('nav-' + sec);
+                if(btn) btn.className = "w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left";
+            });
+
+            document.getElementById('section-' + sectionId).classList.remove('hidden');
+            document.getElementById('section-' + sectionId).classList.add('block');
+            document.getElementById('pageTitle').innerText = titles[sectionId];
+
+            const activeBtn = document.getElementById('nav-' + sectionId);
+            if(activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-4 py-3 bg-brand text-white rounded-lg transition-colors font-medium text-sm text-left";
+
+            if(window.innerWidth < 768) toggleSidebar();
+
+            if(sectionId === 'users') loadPendingUsers();
+            if(sectionId === 'residents') loadApprovedResidentsByBlocks();
+            if(sectionId === 'finance') loadFinanceData();
+            if(sectionId === 'announcements') loadAnnouncements();
+            if(sectionId === 'complaints') loadComplaints();
+            if(sectionId === 'dashboard') loadDashboardStats();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('flex');
+        }
+
+        function loadPendingUsers() {
+            const container = document.getElementById('pendingUsersList');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
+
+            db.collection("users").where("isApproved", "==", false).get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500 font-medium">Şu an onay bekleyen site sakini bulunmuyor.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const u = doc.data();
+                    container.innerHTML += `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl gap-4">
+                            <div>
+                                <h4 class="font-bold text-gray-800">${u.fullName}</h4>
+                                <div class="text-sm text-gray-500 mt-1 flex flex-wrap gap-2">
+                                    <span class="bg-blue-100 text-brand px-2 py-0.5 rounded text-xs font-semibold">${u.block} Blok</span>
+                                    <span class="bg-blue-100 text-brand px-2 py-0.5 rounded text-xs font-semibold">Daire ${u.apartment}</span>
+                                    <span class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold">${u.status}</span>
+                                    <span>${u.phone}</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2">Meslek: ${u.job || 'Belirtilmedi'}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="approveUser('${doc.id}')" class="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded-lg font-medium transition">Onayla</button>
+                                <button onclick="rejectUser('${doc.id}')" class="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-lg font-medium transition">Reddet</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        function approveUser(id) {
+            if(confirm("Bu sakini onaylamak istiyor musunuz?")) {
+                db.collection("users").doc(id).update({ isApproved: true }).then(() => {
+                    alert("Kullanıcı onaylandı.");
+                    loadPendingUsers();
+                });
+            }
+        }
+
+        function rejectUser(id) {
+            if(confirm("Kayıt talebini silmek istiyor musunuz?")) {
+                db.collection("users").doc(id).delete().then(() => {
+                    alert("Kayıt silindi.");
+                    loadPendingUsers();
+                });
+            }
+        }
+
+        function loadApprovedResidentsByBlocks() {
+            const container = document.getElementById('residentsGroupContainer');
+            const badge = document.getElementById('approvedCountBadge');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
+
+            db.collection("users").where("isApproved", "==", true).get().then(snapshot => {
+                container.innerHTML = '';
+                badge.innerText = `${snapshot.size} Sakin`;
+
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500 font-medium">Henüz onaylanmış site sakini bulunmuyor.</p>';
+                    return;
+                }
+
+                const blocks = ["4A", "4A-1", "4B", "4B-1"];
+                const groupedData = { "4A": [], "4A-1": [], "4B": [], "4B-1": [] };
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    if (groupedData[data.block]) {
+                        groupedData[data.block].push(data);
+                    } else {
+                        groupedData[data.block] = [data];
+                    }
+                });
+
+                blocks.forEach(blockName => {
+                    const residentsInBlock = groupedData[blockName] || [];
+                    
+                    let blockHtml = `
+                        <div class="border border-gray-200 rounded-2xl bg-gray-50/50 p-5">
+                            <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-200">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-brand text-white flex items-center justify-center font-bold text-sm">
+                                        ${blockName}
+                                    </div>
+                                    <h4 class="font-bold text-lg text-gray-800">${blockName} Blok Sakinleri</h4>
+                                </div>
+                                <span class="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
+                                    ${residentsInBlock.length} / 6 Daire Dolu
+                                </span>
+                            </div>
+                    `;
+
+                    if (residentsInBlock.length === 0) {
+                        blockHtml += `<p class="text-xs text-gray-400 italic">Bu blokta henüz onaylanmış sakin bulunmuyor.</p>`;
+                    } else {
+                        residentsInBlock.sort((a, b) => parseInt(a.apartment) - parseInt(b.apartment));
+
+                        blockHtml += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`;
+                        
+                        residentsInBlock.forEach(res => {
+                            blockHtml += `
+                                <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="bg-blue-50 text-brand text-xs font-bold px-2 py-0.5 rounded border border-blue-100">Daire ${res.apartment}</span>
+                                            <span class="text-xs font-semibold px-2 py-0.5 rounded ${res.status === 'Malik' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${res.status}</span>
+                                        </div>
+                                        <h5 class="font-bold text-gray-800 text-base">${res.fullName}</h5>
+                                        <p class="text-xs text-gray-500 mt-1">Meslek: ${res.job || 'Belirtilmedi'}</p>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                                        <a href="tel:${res.phone}" class="text-xs font-semibold text-brand hover:underline flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h32a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm0 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2zm0 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2z"></path></svg>
+                                            ${res.phone}
+                                        </a>
+                                        <button onclick="deleteResident('${res.id}')" title="Sakin Kaydını Sil" class="text-gray-400 hover:text-red-500 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        blockHtml += `</div>`;
+                    }
+
+                    blockHtml += `</div>`;
+                    container.innerHTML += blockHtml;
+                });
+            });
+        }
+
+        function deleteResident(id) {
+            if(confirm("Bu sakinin kaydını tamamen silmek istediğinize emin misiniz?")) {
+                db.collection("users").doc(id).delete().then(() => {
+                    alert("Sakin kaydı silindi.");
+                    loadApprovedResidentsByBlocks();
+                });
+            }
+        }
+
+        async function handleAddTransaction() {
+            const type = document.getElementById('finType').value;
+            const amount = parseFloat(document.getElementById('finAmount').value);
+            const desc = document.getElementById('finDesc').value;
+            const collector = document.getElementById('finCollector').value;
+            const fileInput = document.getElementById('finReceipt');
+            const submitBtn = document.getElementById('finSubmitBtn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Kaydediliyor...";
+
+            let receiptUrl = "";
+
+            try {
+                if(fileInput.files.length > 0) {
+                    submitBtn.innerText = "Görsel Yükleniyor...";
+                    const file = fileInput.files[0];
+                    receiptUrl = await uploadToCloudinary(file);
+                }
+
+                submitBtn.innerText = "Kaydediliyor...";
+
+                await db.collection("finance").add({
+                    type,
+                    amount,
+                    description: desc,
+                    collector,
+                    receiptUrl,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("Finansal kayıt başarıyla eklendi.");
+                document.getElementById('financeForm').reset();
+                loadFinanceData();
+
+            } catch (error) {
+                console.error("Finans ekleme hatası:", error);
+                alert("Kayıt sırasında bir hata oluştu: " + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "İşlemi Kaydet";
+            }
+        }
+
+        function loadFinanceData() {
+            const tableBody = document.getElementById('financeTableBody');
+            tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Yükleniyor...</td></tr>';
+
+            db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
+                tableBody.innerHTML = '';
+                if(snapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Henüz finansal kayıt eklenmemiş.</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const f = doc.data();
+                    const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
+                    const isIncome = f.type === 'Gelir';
+                    const receiptBtn = f.receiptUrl 
+                        ? `<a href="${f.receiptUrl}" target="_blank" class="inline-flex items-center text-brand hover:text-brand-dark" title="Makbuzu Gör">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                           </a>`
+                        : '<span class="text-gray-300">-</span>';
+
+                    tableBody.innerHTML += `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-4 py-3">${dateStr}</td>
+                            <td class="px-4 py-3 font-medium text-gray-800">${f.description}<br><span class="text-xs text-gray-400">İşleyen: ${f.collector}</span></td>
+                            <td class="px-4 py-3"><span class="${isIncome ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-1 rounded text-xs font-semibold">${f.type}</span></td>
+                            <td class="px-4 py-3 text-center">${receiptBtn}</td>
+                            <td class="px-4 py-3 text-right font-bold ${isIncome ? 'text-green-600' : 'text-gray-900'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR')} ₺</td>
+                        </tr>`;
+                });
+            });
+        }
+
+        async function handleAddAnnouncement() {
+            const title = document.getElementById('annTitle').value;
+            const content = document.getElementById('annContent').value;
+            const imageInput = document.getElementById('annImage');
+            const btn = document.getElementById('annSubmitBtn');
+
+            btn.disabled = true;
+            btn.innerText = "Yayınlanıyor...";
+
+            let imageUrl = "";
+
+            try {
+                if(imageInput.files.length > 0) {
+                    btn.innerText = "Görsel Yükleniyor...";
+                    imageUrl = await uploadToCloudinary(imageInput.files[0]);
+                }
+
+                btn.innerText = "Yayınlanıyor...";
+
+                await db.collection("announcements").add({
+                    title,
+                    content,
+                    imageUrl,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("Duyuru başarıyla yayınlandı.");
+                document.getElementById('announcementForm').reset();
+                loadAnnouncements();
+            } catch (error) {
+                alert("Duyuru yayınlama hatası: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Duyuruyu Yayınla";
+            }
+        }
+
+        function loadAnnouncements() {
+            const container = document.getElementById('announcementsList');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
+
+            db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">Yayınlanmış duyuru yok.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const a = doc.data();
+                    const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
+                    const imgHtml = a.imageUrl ? `<img src="${a.imageUrl}" class="w-full h-40 object-cover rounded-lg my-2 border border-gray-200">` : '';
+                    container.innerHTML += `
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl relative">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-bold text-gray-800">${a.title}</h4>
+                                <span class="text-xs text-gray-400">${dateStr}</span>
+                            </div>
+                            <p class="text-sm text-gray-600">${a.content}</p>
+                            ${imgHtml}
+                            <button onclick="deleteAnnouncement('${doc.id}')" class="text-xs text-red-500 hover:underline mt-2 inline-block">Duyuruyu Sil</button>
+                        </div>`;
+                });
+            });
+        }
+
+        function deleteAnnouncement(id) {
+            if(confirm("Duyuruyu silmek istediğinize emin misiniz?")) {
+                db.collection("announcements").doc(id).delete().then(() => loadAnnouncements());
+            }
+        }
+
+        function loadComplaints() {
+            const container = document.getElementById('complaintsList');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
+
+            db.collection("complaints").orderBy("createdAt", "desc").get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">Gelen şikayet veya öneri bulunmuyor.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const c = doc.data();
+                    const dateStr = c.createdAt ? new Date(c.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
+                    const isComplaint = c.type === 'Şikayet';
+
+                    container.innerHTML += `
+                        <div class="p-4 ${isComplaint ? 'bg-red-50 border-red-100' : 'bg-blue-50 border-blue-100'} border rounded-xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="${isComplaint ? 'bg-red-500' : 'bg-brand'} text-white px-2 py-0.5 rounded text-xs font-semibold">${c.type}</span>
+                                <span class="text-xs text-gray-500">${dateStr} - ${c.userName} (${c.userBlock} / Daire ${c.userApt})</span>
+                            </div>
+                            <h4 class="font-bold text-gray-800">${c.title}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${c.message}</p>
+                        </div>`;
+                });
+            });
+        }
+
+        function loadDashboardStats() {
+            db.collection("users").where("isApproved", "==", false).get().then(s => {
+                document.getElementById('statPendingCount').innerText = s.size;
+            });
+
+            db.collection("announcements").get().then(s => {
+                document.getElementById('statAnnounceCount').innerText = s.size;
+            });
+
+            db.collection("complaints").get().then(s => {
+                document.getElementById('statComplaintCount').innerText = s.size;
+            });
+
+            db.collection("finance").get().then(s => {
+                let total = 0;
+                s.forEach(doc => {
+                    const f = doc.data();
+                    if(f.type === 'Gelir') total += f.amount;
+                    if(f.type === 'Gider') total -= f.amount;
+                });
+                document.getElementById('statBalance').innerText = total.toLocaleString('tr-TR') + ' ₺';
+            });
+        }
+
+        function showAdminPanel() {
+            document.getElementById('adminLoginScreen').classList.add('hidden');
+            document.getElementById('adminPanelRoot').classList.remove('hidden');
+            loadDashboardStats();
+        }
+
+        function handleAdminLogin() {
+            const phone = document.getElementById('adminLoginPhone').value.trim();
+            const pass = document.getElementById('adminLoginPass').value;
+            const errorEl = document.getElementById('adminLoginError');
+
+            if (phone === ADMIN_PHONE && pass === ADMIN_PASS) {
+                localStorage.setItem('userRole', 'admin');
+                errorEl.classList.add('hidden');
+                showAdminPanel();
+            } else {
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        window.onload = () => {
+            if (localStorage.getItem('userRole') === 'admin') {
+                showAdminPanel();
+            }
+        };
+
+        function logout() {
+            localStorage.removeItem('userRole');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

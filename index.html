@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balkan Yapı Sitesi</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1018/1018525.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            light: '#eff6ff',
+                            DEFAULT: '#3b82f6',
+                            dark: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-brand-light text-gray-800 antialiased min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl border border-blue-50 my-8">
+        
+        <!-- Header & Logo -->
+        <div class="text-center mb-6">
+            <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center bg-blue-50 rounded-2xl shadow-inner">
+                <svg class="w-12 h-12 text-brand" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.099l-10 8.901h3v11h14v-11h3l-10-8.901z"/>
+                    <g transform="translate(3, 4.5) scale(0.75)">
+                        <path fill="white" d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V18h14v-1.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </g>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-brand-dark tracking-tight">Balkan Yapı Sitesi</h1>
+            <p class="text-sm text-gray-500 mt-1 font-medium">Site Portalı</p>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button id="tabLogin" class="flex-1 py-2 text-brand font-semibold border-b-2 border-brand" onclick="switchTab('login')">Giriş Yap</button>
+            <button id="tabRegister" class="flex-1 py-2 text-gray-500 font-semibold border-b-2 border-transparent" onclick="switchTab('register')">Kayıt Ol</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="formLogin" class="block">
+            <form id="loginFormElement" onsubmit="event.preventDefault(); handleLogin();">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cep Telefonu</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg font-semibold">
+                            +90
+                        </span>
+                        <input type="tel" id="loginPhone" placeholder="5XX XXX XX XX" maxlength="10" oninput="validatePhoneInput(this)" class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-brand outline-none" required>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
+                    <div class="relative">
+                        <input type="password" id="loginPassword" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none pr-10" required>
+                        <button type="button" onclick="togglePassword('loginPassword')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-brand">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-right mb-6">
+                    <a href="#" onclick="handleForgotPassword()" class="text-sm text-brand hover:underline">Şifremi Unuttum</a>
+                </div>
+                <button type="submit" id="loginSubmitBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md">Giriş Yap</button>
+            </form>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="formRegister" class="hidden">
+            <form id="registerFormElement" onsubmit="event.preventDefault(); handleRegister();">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ad Soyad *</label>
+                    <input type="text" id="regFullName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none capitalize-input" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cep Telefonu *</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3 text-sm text-gray-600 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg font-semibold">
+                            +90
+                        </span>
+                        <input type="tel" id="regPhone" placeholder="5XX XXX XX XX" maxlength="10" oninput="validatePhoneInput(this)" class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-brand outline-none" required>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-1">Sıfır (0) basmadan 10 haneli giriniz.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-1">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Blok No *</label>
+                        <select id="regBlock" onchange="updateApartmentOptions()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                            <option value="">Seçiniz</option>
+                            <option value="4A">4A</option>
+                            <option value="4A-1">4A-1</option>
+                            <option value="4B">4B</option>
+                            <option value="4B-1">4B-1</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Daire No *</label>
+                        <select id="regApt" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                            <option value="">Önce blok seçin</option>
+                        </select>
+                    </div>
+                </div>
+                <p id="aptAvailabilityNote" class="text-[11px] text-gray-400 mb-4 h-4"></p>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Oturum Durumu *</label>
+                    <select id="regStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                        <option value="">Seçiniz</option>
+                        <option value="Malik">Malik (Ev Sahibi)</option>
+                        <option value="Kiracı">Kiracı</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Meslek</label>
+                    <input type="text" id="regJob" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none capitalize-input">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Şifre Belirleyin *</label>
+                    <div class="relative">
+                        <input type="password" id="regPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none pr-10" required>
+                        <button type="button" onclick="togglePassword('regPassword')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-brand">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Şifre Tekrar *</label>
+                    <div class="relative">
+                        <input type="password" id="regPasswordConfirm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand outline-none pr-10" required>
+                        <button type="button" onclick="togglePassword('regPasswordConfirm')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-brand">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="regSubmitBtn" class="w-full bg-brand-dark hover:bg-blue-900 text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md">Kayıt Ol</button>
+            </form>
+
+            <!-- Kayıt Başarılı Bilgilendirmesi -->
+            <div id="successSection" class="hidden mt-4 p-5 border border-green-200 rounded-lg bg-green-50 text-center">
+                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <p class="text-sm text-green-800 font-medium leading-relaxed">Kaydınız alındı. Yönetici onayı sonrası siteye erişiminiz sağlanacaktır.</p>
+                <button type="button" onclick="switchTab('login')" class="mt-4 text-sm text-brand font-semibold hover:underline">Giriş Ekranına Dön</button>
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-gray-400 mt-6">
+            Yönetici misiniz? <a href="admin.html" class="text-brand hover:underline font-medium">Yönetici Paneline Git</a>
+        </p>
+
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // --- FIREBASE BAĞLANTISI ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXF8oiGvPCvUCwq1RVKHsttIsOAnOb4kM",
+            authDomain: "balkansitepwa.firebaseapp.com",
+            projectId: "balkansitepwa",
+            storageBucket: "balkansitepwa.appspot.com",
+            messagingSenderId: "449921654999",
+            appId: "1:449921654999:web:73e35ca97ef5b7d32d9092"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- SIFIR İLE BAŞLAMA ENGELİ ---
+        function validatePhoneInput(input) {
+            let val = input.value.replace(/\D/g, '');
+            if (val.startsWith('0')) {
+                val = val.substring(1);
+            }
+            input.value = val;
+        }
+
+        // --- SEKME DEĞİŞTİRİCİ ---
+        function switchTab(tab) {
+            const loginForm = document.getElementById('formLogin');
+            const registerForm = document.getElementById('formRegister');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+
+            if(tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.classList.add('text-brand', 'border-brand');
+                tabLogin.classList.remove('text-gray-500', 'border-transparent');
+                tabRegister.classList.remove('text-brand', 'border-brand');
+                tabRegister.classList.add('text-gray-500', 'border-transparent');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabRegister.classList.add('text-brand', 'border-brand');
+                tabRegister.classList.remove('text-gray-500', 'border-transparent');
+                tabLogin.classList.remove('text-brand', 'border-brand');
+                tabLogin.classList.add('text-gray-500', 'border-transparent');
+
+                // Önceki başarılı kayıt ekranı varsa formu sıfırlayıp tekrar göster
+                const successSection = document.getElementById('successSection');
+                const registerFormElement = document.getElementById('registerFormElement');
+                if (successSection && !successSection.classList.contains('hidden')) {
+                    successSection.classList.add('hidden');
+                    registerFormElement.classList.remove('hidden');
+                    registerFormElement.reset();
+                }
+            }
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === "password" ? "text" : "password";
+        }
+
+        // --- DOLULUK KONTROLÜ ---
+        // --- BLOK SEÇİLİNCE DOLU DAİRELERİ SEÇİLEMEZ HALE GETİR ---
+        const ALL_APARTMENTS = ["1", "2", "3", "4", "5", "6"];
+
+        async function updateApartmentOptions() {
+            const block = document.getElementById('regBlock').value;
+            const aptSelect = document.getElementById('regApt');
+            const note = document.getElementById('aptAvailabilityNote');
+
+            if (!block) {
+                aptSelect.innerHTML = '<option value="">Önce blok seçin</option>';
+                note.innerText = "";
+                return;
+            }
+
+            aptSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            note.innerText = "";
+
+            const snapshot = await db.collection("users").where("block", "==", block).get();
+            const takenApts = new Set();
+            snapshot.forEach(doc => takenApts.add(doc.data().apartment));
+
+            let optionsHtml = '<option value="">Seçiniz</option>';
+            ALL_APARTMENTS.forEach(apt => {
+                const isTaken = takenApts.has(apt);
+                optionsHtml += `<option value="${apt}" ${isTaken ? 'disabled' : ''}>Daire ${apt}${isTaken ? ' (Dolu)' : ''}</option>`;
+            });
+            aptSelect.innerHTML = optionsHtml;
+
+            note.innerText = takenApts.size > 0
+                ? `${block} Blok: ${takenApts.size}/6 daire dolu. Dolu daireler listeden seçilemez.`
+                : `${block} Blok: tüm daireler müsait.`;
+        }
+
+        // --- KAYIT OL (SMS doğrulaması yok, yönetici onayına düşer) ---
+        async function handleRegister() {
+            const fullName = document.getElementById('regFullName').value;
+            const block = document.getElementById('regBlock').value;
+            const apt = document.getElementById('regApt').value;
+            const status = document.getElementById('regStatus').value;
+            const job = document.getElementById('regJob').value;
+            const pass1 = document.getElementById('regPassword').value;
+            const pass2 = document.getElementById('regPasswordConfirm').value;
+            const rawPhone = document.getElementById('regPhone').value.trim();
+            const btn = document.getElementById('regSubmitBtn');
+
+            if (rawPhone.length !== 10) {
+                alert("Lütfen telefon numaranızı başında 0 olmadan 10 hane olarak giriniz.");
+                return;
+            }
+
+            if (pass1 !== pass2) {
+                alert("Şifreler uyuşmuyor.");
+                return;
+            }
+
+            if (pass1.length < 4) {
+                alert("Şifreniz en az 4 karakter olmalıdır.");
+                return;
+            }
+
+            const fullPhone = "+90" + rawPhone;
+
+            btn.disabled = true;
+            btn.innerText = "Kaydediliyor...";
+
+            try {
+                // Aynı blok/daire dolu mu? (son kez kontrol)
+                const aptCheck = await db.collection("users")
+                    .where("block", "==", block)
+                    .where("apartment", "==", apt)
+                    .get();
+
+                if (!aptCheck.empty) {
+                    alert(`Uyarı: ${block} Blok, Daire ${apt} doludur.`);
+                    btn.disabled = false;
+                    btn.innerText = "Kayıt Ol";
+                    return;
+                }
+
+                // Aynı telefon numarası daha önce kayıt olmuş mu?
+                const phoneCheck = await db.collection("users").where("phone", "==", fullPhone).get();
+                if (!phoneCheck.empty) {
+                    alert("Bu telefon numarasıyla daha önce kayıt yapılmış.");
+                    btn.disabled = false;
+                    btn.innerText = "Kayıt Ol";
+                    return;
+                }
+
+                await db.collection("users").add({
+                    fullName,
+                    phone: fullPhone,
+                    block,
+                    apartment: apt,
+                    status,
+                    job,
+                    password: pass1,
+                    isApproved: false, // Yönetici Onayına Düşer
+                    createdAt: new Date()
+                });
+
+                document.getElementById('registerFormElement').classList.add('hidden');
+                document.getElementById('successSection').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Kayıt Hatası:", error);
+                alert("Kayıt sırasında bir hata oluştu: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Kayıt Ol";
+            }
+        }
+
+        // --- GİRİŞ YAPMA VE ŞİFRE KONTROLÜ (SADECE SİTE SAKİNLERİ) ---
+        async function handleLogin() {
+            const rawPhone = document.getElementById('loginPhone').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginSubmitBtn');
+
+            if(rawPhone.length !== 10 || !pass) {
+                alert("Lütfen telefon numaranızı ve şifrenizi eksiksiz girin.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Giriş Yapılıyor...";
+
+            const fullPhone = "+90" + rawPhone;
+
+            try {
+                // Veritabanında telefon numarasını ara
+                const querySnapshot = await db.collection("users").where("phone", "==", fullPhone).get();
+
+                if (querySnapshot.empty) {
+                    alert("Bu telefon numarasına ait bir kayıt bulunamadı.");
+                    btn.disabled = false;
+                    btn.innerText = "Giriş Yap";
+                    return;
+                }
+
+                let userDoc = null;
+                querySnapshot.forEach(doc => {
+                    userDoc = doc.data();
+                });
+
+                // Şifre Kontrolü
+                if (userDoc.password !== pass) {
+                    alert("Hatalı şifre girdiniz!");
+                    btn.disabled = false;
+                    btn.innerText = "Giriş Yap";
+                    return;
+                }
+
+                // Onay Kontrolü
+                if (userDoc.isApproved !== true) {
+                    alert("Hesabınız henüz yönetici tarafından onaylanmamış. Lütfen bekleyiniz.");
+                    btn.disabled = false;
+                    btn.innerText = "Giriş Yap";
+                    return;
+                }
+
+                // Her şey doğruysa Session oluştur ve Dashboard'a yönlendir
+                localStorage.setItem("userPhone", fullPhone);
+                localStorage.setItem("userRole", "resident");
+                window.location.href = "dashboard.html";
+
+            } catch (error) {
+                console.error("Giriş Hatası:", error);
+                alert("Giriş sırasında bir hata oluştu: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "Giriş Yap";
+            }
+        }
+
+        function handleForgotPassword() {
+            const phone = prompt("Lütfen şifre sıfırlama talebi için kayıtlı cep telefonunuzu girin (5XX...):");
+            if(phone) {
+                alert("Şifre sıfırlama talebiniz yöneticiye iletilmiştir. En kısa sürede sizinle iletişime geçilecektir.");
+            }
+        }
+    </script>
+</body>
+</html>
