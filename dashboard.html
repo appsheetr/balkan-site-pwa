@@ -49,7 +49,6 @@
     <style>
         ::selection { background: #B08D3F33; }
         .tabular-nums { font-variant-numeric: tabular-nums; }
-        /* Scrollbar gizleme */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -59,177 +58,235 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-[#F5F7FB] text-ink antialiased min-h-screen pb-32">
+<body class="bg-[#F5F7FB] text-ink antialiased min-h-screen flex overflow-hidden">
 
-    <!-- Header -->
-    <header class="bg-gradient-to-br from-brand-dark via-[#132B5C] to-brand text-white sticky top-0 z-40 shadow-plate">
-        <div class="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
+    <!-- Sidebar / Drawer (Hamburger Menü) -->
+    <aside id="sidebar" class="bg-white border-r border-slate-200 w-64 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-50 absolute md:relative h-full shadow-lg">
+        <div class="h-16 flex items-center justify-between px-4 border-b border-slate-100">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-white rounded-full flex items-center justify-center shadow-md shrink-0 overflow-hidden">
-                    <img id="headerAvatarImg" src="" class="hidden w-full h-full object-cover">
-                    <svg id="headerAvatarSvg" class="w-6 h-6 text-brand" viewBox="0 0 24 24" fill="currentColor">
+                <div class="w-8 h-8 bg-brand-dark rounded-xl flex items-center justify-center text-white shadow-sm shrink-0">
+                    <svg class="w-5 h-5 text-gold" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2.099l-10 8.901h3v11h14v-11h3l-10-8.901z"/>
                     </svg>
                 </div>
-                <div class="min-w-0">
-                    <h1 class="font-serif text-[17px] font-semibold leading-tight tracking-tight truncate">Balkan Yapı Sitesi</h1>
-                    <p class="text-[11px] text-blue-200/80 mt-0.5 truncate" id="userGreeting">Hoş Geldiniz</p>
-                </div>
+                <span class="font-serif font-bold text-ink tracking-tight">Balkan Site</span>
             </div>
-            <button onclick="logout()" class="shrink-0 text-[11px] font-semibold bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-2 rounded-xl transition">Çıkış</button>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-brand transition-colors p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
-        <div class="h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent"></div>
-    </header>
 
-    <!-- Main Container -->
-    <main class="max-w-2xl mx-auto p-4 space-y-7">
+        <!-- Navigation Links -->
+        <nav class="flex-1 px-3 py-5 space-y-1.5 overflow-y-auto">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 bg-brand-dark text-white rounded-xl shadow-sm transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                Özet Ekranı
+            </button>
+            <button onclick="switchTab('finance')" id="tab-finance" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Finans Hareketleri
+            </button>
+            <button onclick="switchTab('announcements')" id="tab-announcements" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+                Duyuru & Haberler
+            </button>
+            <button onclick="switchTab('complaint')" id="tab-complaint" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                Şikayet & Öneri Gönder
+            </button>
+            <button onclick="switchTab('residents')" id="tab-residents" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Komşularımız
+            </button>
+            <button onclick="switchTab('profile')" id="tab-profile" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                Profil Ayarları
+            </button>
+        </nav>
 
-        <!-- SECTION 1: DASHBOARD OVERVIEW -->
-        <div id="view-dashboard" class="space-y-7">
-            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-dark to-[#16305F] text-white p-5 shadow-plate">
-                <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-gold/10 blur-2xl pointer-events-none"></div>
-                
-                <div class="relative flex items-center justify-between gap-4">
-                    <div onclick="switchTab('finance')" class="cursor-pointer hover:opacity-80 transition group p-2 rounded-xl">
-                        <p class="text-[10px] uppercase tracking-[0.18em] text-blue-200/70 font-semibold mb-1.5 group-hover:text-gold transition">Kasa Bakiyesi</p>
-                        <p id="dashBalance" class="font-serif text-3xl font-semibold tabular-nums">0 ₺</p>
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-red-50 text-red-600 rounded-xl transition-colors font-semibold text-sm">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Güvenli Çıkış
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col h-full w-full overflow-hidden bg-transparent">
+        
+        <header class="bg-gradient-to-br from-brand-dark via-[#132B5C] to-brand text-white shadow-plate shrink-0">
+            <div class="px-4 py-3.5 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="md:hidden text-white/80 hover:text-white p-1 transition-colors">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md shrink-0 overflow-hidden">
+                        <img id="headerAvatarImg" src="" class="hidden w-full h-full object-cover">
+                        <svg id="headerAvatarSvg" class="w-5 h-5 text-brand" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
                     </div>
-                    <div class="w-px h-12 bg-white/10 shrink-0"></div>
-                    <div onclick="switchTab('announcements')" class="text-right cursor-pointer hover:opacity-80 transition group p-2 rounded-xl">
-                        <p class="text-[10px] uppercase tracking-[0.18em] text-blue-200/70 font-semibold mb-1.5 group-hover:text-gold transition">Aktif Duyuru</p>
-                        <p id="dashAnnounceCount" class="font-serif text-3xl font-semibold tabular-nums">0</p>
+                    <div class="min-w-0">
+                        <p class="text-[11px] text-blue-200/80 mb-0.5 truncate">Merhaba,</p>
+                        <h1 class="font-serif text-[15px] font-semibold leading-none tracking-tight truncate" id="userGreeting">Sakin</h1>
                     </div>
-                </div>
-
-                <div class="relative mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5 text-[11px] text-blue-200/70">
-                    <svg class="w-3.5 h-3.5 text-gold shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-4a1 1 0 00-1 1v3a1 1 0 00.293.707l2 2a1 1 0 001.414-1.414L11 10.586V7a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                    Tüm gelir-gider hareketleri Finans sekmesinde şeffafça listelenir
                 </div>
             </div>
+            <div class="h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent"></div>
+        </header>
 
-            <div>
-                <div class="flex justify-between items-end mb-3">
+        <main class="flex-1 overflow-y-auto hide-scrollbar p-4 lg:p-8">
+            <div class="max-w-4xl mx-auto space-y-7 pb-6">
+
+                <!-- SECTION 1: DASHBOARD OVERVIEW -->
+                <div id="view-dashboard" class="space-y-7 block">
+                    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-dark to-[#16305F] text-white p-5 shadow-plate">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-gold/10 blur-2xl pointer-events-none"></div>
+                        
+                        <div class="relative flex items-center justify-between gap-4">
+                            <div onclick="switchTab('finance')" class="cursor-pointer hover:opacity-80 transition group p-2 rounded-xl">
+                                <p class="text-[10px] uppercase tracking-[0.18em] text-blue-200/70 font-semibold mb-1.5 group-hover:text-gold transition">Kasa Bakiyesi</p>
+                                <p id="dashBalance" class="font-serif text-3xl font-semibold tabular-nums">0 ₺</p>
+                            </div>
+                            <div class="w-px h-12 bg-white/10 shrink-0"></div>
+                            <div onclick="switchTab('announcements')" class="text-right cursor-pointer hover:opacity-80 transition group p-2 rounded-xl">
+                                <p class="text-[10px] uppercase tracking-[0.18em] text-blue-200/70 font-semibold mb-1.5 group-hover:text-gold transition">Aktif Duyuru</p>
+                                <p id="dashAnnounceCount" class="font-serif text-3xl font-semibold tabular-nums">0</p>
+                            </div>
+                        </div>
+
+                        <div class="relative mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5 text-[11px] text-blue-200/70">
+                            <svg class="w-3.5 h-3.5 text-gold shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-4a1 1 0 00-1 1v3a1 1 0 00.293.707l2 2a1 1 0 001.414-1.414L11 10.586V7a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                            Tüm gelir-gider hareketleri Finans sekmesinde şeffafça listelenir
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-end mb-3">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Duyuru Panosu</p>
+                                <h3 class="font-serif text-base font-semibold text-ink">Son Duyurular & Haberler</h3>
+                            </div>
+                            <button onclick="switchTab('announcements')" class="text-[11px] font-semibold text-brand bg-brand-light hover:bg-blue-100 px-3 py-1.5 rounded-full transition">Tümünü Gör</button>
+                        </div>
+                        <div id="dashAnnounceList" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: FINANCE -->
+                <div id="view-finance" class="hidden space-y-4">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Defter</p>
+                        <h3 class="font-serif text-base font-semibold text-ink">Gelir ve Gider Şeffaflık Tablosu</h3>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-plate border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left text-slate-500">
+                                <thead class="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-50/80 border-b border-slate-100">
+                                    <tr>
+                                        <th class="px-3 py-3 font-semibold">Tarih</th>
+                                        <th class="px-3 py-3 font-semibold">Açıklama</th>
+                                        <th class="px-3 py-3 text-center font-semibold">Makbuz</th>
+                                        <th class="px-3 py-3 text-right font-semibold">Tutar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="residentFinanceTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: ANNOUNCEMENTS -->
+                <div id="view-announcements" class="hidden space-y-4">
                     <div>
                         <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Duyuru Panosu</p>
-                        <h3 class="font-serif text-base font-semibold text-ink">Son Duyurular & Haberler</h3>
+                        <h3 class="font-serif text-base font-semibold text-ink">Tüm Duyurular & Haberler</h3>
                     </div>
-                    <button onclick="switchTab('announcements')" class="text-[11px] font-semibold text-brand bg-brand-light hover:bg-blue-100 px-3 py-1.5 rounded-full transition">Tümünü Gör</button>
+                    <div id="fullAnnounceList" class="space-y-4"></div>
                 </div>
-                <div id="dashAnnounceList" class="space-y-3"></div>
-            </div>
-        </div>
 
-        <!-- SECTION 2: FINANCE -->
-        <div id="view-finance" class="hidden space-y-4">
-            <div>
-                <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Defter</p>
-                <h3 class="font-serif text-base font-semibold text-ink">Gelir ve Gider Şeffaflık Tablosu</h3>
-            </div>
-            <div class="bg-white rounded-2xl shadow-plate border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left text-slate-500">
-                        <thead class="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-50/80 border-b border-slate-100">
-                            <tr>
-                                <th class="px-3 py-3 font-semibold">Tarih</th>
-                                <th class="px-3 py-3 font-semibold">Açıklama</th>
-                                <th class="px-3 py-3 text-center font-semibold">Makbuz</th>
-                                <th class="px-3 py-3 text-right font-semibold">Tutar</th>
-                            </tr>
-                        </thead>
-                        <tbody id="residentFinanceTable"></tbody>
-                    </table>
+                <!-- SECTION 4: COMPLAINT FORM -->
+                <div id="view-complaint" class="hidden space-y-4">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">İletişim</p>
+                        <h3 class="font-serif text-base font-semibold text-ink">Yönetime Bildirim Gönder</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
+                        <p class="text-xs text-slate-400 mb-4 leading-relaxed">Şikayet veya öneriniz, yöneticinin ekranına iletilir ve sürecini buradan takip edemezsiniz.</p>
+
+                        <form onsubmit="event.preventDefault(); handleSendComplaint();">
+                            <div class="mb-3">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Bildirim Türü</label>
+                                <select id="compType" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white">
+                                    <option value="Şikayet">Şikayet</option>
+                                    <option value="Öneri">Öneri</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Konu Başlığı</label>
+                                <input type="text" id="compTitle" placeholder="Örn: Otopark Temizliği" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Mesajınız</label>
+                                <textarea id="compMessage" rows="4" placeholder="Detaylı şekilde yazabilirsiniz..." class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required></textarea>
+                            </div>
+                            <button type="submit" id="compSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark hover:brightness-110 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Yönetime Gönder</button>
+                        </form>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- SECTION 3: ANNOUNCEMENTS -->
-        <div id="view-announcements" class="hidden space-y-4">
-            <div>
-                <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Duyuru Panosu</p>
-                <h3 class="font-serif text-base font-semibold text-ink">Tüm Duyurular & Haberler</h3>
-            </div>
-            <div id="fullAnnounceList" class="space-y-4"></div>
-        </div>
-
-        <!-- SECTION 4: COMPLAINT FORM -->
-        <div id="view-complaint" class="hidden space-y-4">
-            <div>
-                <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">İletişim</p>
-                <h3 class="font-serif text-base font-semibold text-ink">Yönetime Bildirim Gönder</h3>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
-                <p class="text-xs text-slate-400 mb-4 leading-relaxed">Şikayet veya öneriniz doğrudan site yöneticisinin paneline, adınızla birlikte iletilecektir.</p>
-
-                <form onsubmit="event.preventDefault(); handleSendComplaint();">
-                    <div class="mb-3">
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Bildirim Türü</label>
-                        <select id="compType" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white">
-                            <option value="Şikayet">Şikayet</option>
-                            <option value="Öneri">Öneri</option>
-                        </select>
+                <!-- SECTION 5: RESIDENTS LIST -->
+                <div id="view-residents" class="hidden space-y-4">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Komşuluk</p>
+                        <h3 class="font-serif text-base font-semibold text-ink">Site Komşularımız</h3>
                     </div>
-                    <div class="mb-3">
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Konu Başlığı</label>
-                        <input type="text" id="compTitle" placeholder="Örn: Otopark Temizliği" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
+                    <div id="residentBlockContainer" class="space-y-6"></div>
+                </div>
+
+                <!-- SECTION 6: PROFILE -->
+                <div id="view-profile" class="hidden space-y-4">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Hesabım</p>
+                        <h3 class="font-serif text-base font-semibold text-ink">Profil Ayarları</h3>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Mesajınız</label>
-                        <textarea id="compMessage" rows="4" placeholder="Detaylı şekilde yazabilirsiniz..." class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required></textarea>
+                    <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
+                        <form id="profileForm" onsubmit="event.preventDefault(); handleProfileUpdate();">
+                            
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="w-16 h-16 rounded-full bg-slate-100 border-2 border-brand overflow-hidden shrink-0">
+                                    <img id="profileAvatarPreview" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Profil Fotoğrafı</label>
+                                    <input type="file" id="profileAvatarFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-light file:text-brand hover:file:bg-blue-100">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Cep Telefonu (Değişirse onaya düşer)</label>
+                                <div class="flex">
+                                    <span class="inline-flex items-center px-3 text-sm text-slate-600 bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl font-semibold">+90</span>
+                                    <input type="tel" id="profilePhone" maxlength="10" oninput="validatePhoneInput(this)" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-r-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Hesap Şifresi (Değişirse onaya düşer)</label>
+                                <input type="text" id="profilePassword" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
+                            </div>
+
+                            <button type="submit" id="profileSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark hover:brightness-110 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Bilgilerimi Güncelle</button>
+                        </form>
                     </div>
-                    <button type="submit" id="compSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark hover:brightness-110 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Yönetime Gönder</button>
-                </form>
+                </div>
+
             </div>
-        </div>
+        </main>
+    </div>
 
-        <!-- SECTION 5: RESIDENTS LIST -->
-        <div id="view-residents" class="hidden space-y-4">
-            <div>
-                <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Komşuluk</p>
-                <h3 class="font-serif text-base font-semibold text-ink">Site Komşularımız</h3>
-            </div>
-            <div id="residentBlockContainer" class="space-y-6"></div>
-        </div>
-
-        <!-- SECTION 6: PROFILE -->
-        <div id="view-profile" class="hidden space-y-4">
-            <div>
-                <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Hesabım</p>
-                <h3 class="font-serif text-base font-semibold text-ink">Profil Ayarları</h3>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
-                <form id="profileForm" onsubmit="event.preventDefault(); handleProfileUpdate();">
-                    
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-16 h-16 rounded-full bg-slate-100 border-2 border-brand overflow-hidden shrink-0">
-                            <img id="profileAvatarPreview" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Profil Fotoğrafı (Opsiyonel)</label>
-                            <input type="file" id="profileAvatarFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-light file:text-brand hover:file:bg-blue-100">
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Cep Telefonu (Değişirse tekrar onay gerekir)</label>
-                        <div class="flex">
-                            <span class="inline-flex items-center px-3 text-sm text-slate-600 bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl font-semibold">+90</span>
-                            <input type="tel" id="profilePhone" maxlength="10" oninput="validatePhoneInput(this)" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-r-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Hesap Şifresi (Değişirse tekrar onay gerekir)</label>
-                        <input type="text" id="profilePassword" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
-                    </div>
-
-                    <button type="submit" id="profileSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark hover:brightness-110 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Bilgilerimi Güncelle</button>
-                </form>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- ANNOUNCEMENT MODAL (BÜYÜK DUYURU EKRANI) -->
+    <!-- ANNOUNCEMENT MODAL -->
     <div id="announcementModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-ink/60 backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-transform duration-300" id="announcementModalContent">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -248,55 +305,21 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="fixed bottom-3 left-3 right-3 z-50">
-        <div class="max-w-2xl mx-auto bg-white border-2 border-slate-200 rounded-2xl shadow-nav flex items-center px-2 py-2 overflow-x-auto hide-scrollbar">
-            <div class="flex justify-between w-full min-w-[320px]">
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl bg-brand-dark text-white shadow-md transition-colors flex-1">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
-                    <span class="text-[10px] font-semibold">Özet</span>
-                </button>
-                <button onclick="switchTab('finance')" id="tab-finance" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span class="text-[10px] font-semibold">Finans</span>
-                </button>
-                <button onclick="switchTab('announcements')" id="tab-announcements" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
-                    <span class="text-[10px] font-semibold">Duyurular</span>
-                </button>
-                <button onclick="switchTab('complaint')" id="tab-complaint" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
-                    <span class="text-[10px] font-semibold">Şikayet</span>
-                </button>
-                <button onclick="switchTab('residents')" id="tab-residents" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    <span class="text-[10px] font-semibold">Sakinler</span>
-                </button>
-                <button onclick="switchTab('profile')" id="tab-profile" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    <span class="text-[10px] font-semibold">Profil</span>
-                </button>
-            </div>
-        </div>
-    </nav>
-
     <!-- Application Logic Script -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCXF8oiGvPCvUCwq1RVKHsttIsOAnOb4kM",
             authDomain: "balkansitepwa.firebaseapp.com",
             projectId: "balkansitepwa",
-            storageBucket: "balkansitepwa.firebasestorage.app",
+            storageBucket: "balkansitepwa.appspot.com",
             messagingSenderId: "449921654999",
             appId: "1:449921654999:web:73e35ca97ef5b7d32d9092"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- GLOBAL ANNOUNCEMENT MAP ---
         window.announcementsMap = {};
 
-        // Cloudinary Ayarları
         const CLOUDINARY_CLOUD_NAME = "xtu9pdgv";
         const CLOUDINARY_UPLOAD_PRESET = "balkan_site_unsigned";
         const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
@@ -307,15 +330,8 @@
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
             formData.append('folder', 'profiles');
 
-            const response = await fetch(CLOUDINARY_UPLOAD_URL, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error('Resim yüklenemedi.');
-            }
-
+            const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Resim yüklenemedi.');
             const data = await response.json();
             return data.secure_url;
         }
@@ -331,9 +347,7 @@
         } else {
             db.collection("users").where("phone", "==", sessionPhone).get().then(snapshot => {
                 if (snapshot.empty) {
-                    localStorage.removeItem('userPhone');
-                    localStorage.removeItem('userRole');
-                    window.location.href = "index.html";
+                    logout();
                     return;
                 }
                 currentUserId = snapshot.docs[0].id;
@@ -349,7 +363,6 @@
                     const headerImg = document.getElementById('headerAvatarImg');
                     headerImg.src = currentUserData.avatarUrl;
                     headerImg.classList.remove('hidden');
-
                     document.getElementById('profileAvatarPreview').src = currentUserData.avatarUrl;
                 }
             });
@@ -361,18 +374,31 @@
             input.value = val;
         }
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+            } else {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('flex');
+            }
+        }
+
         const tabs = ['dashboard', 'finance', 'announcements', 'complaint', 'residents', 'profile'];
 
         function switchTab(tabId) {
             tabs.forEach(t => {
                 document.getElementById('view-' + t).classList.add('hidden');
                 const btn = document.getElementById('tab-' + t);
-                if(btn) btn.className = "flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1";
+                if(btn) btn.className = "w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand rounded-xl transition-colors font-medium text-sm text-left";
             });
 
             document.getElementById('view-' + tabId).classList.remove('hidden');
             const activeBtn = document.getElementById('tab-' + tabId);
-            if(activeBtn) activeBtn.className = "flex flex-col items-center gap-1 py-2 px-3 rounded-xl bg-brand-dark text-white shadow-md transition-colors flex-1";
+            if(activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-3 py-2.5 bg-brand-dark text-white rounded-xl shadow-sm transition-colors font-medium text-sm text-left";
+
+            if(window.innerWidth < 768) toggleSidebar();
 
             if(tabId === 'dashboard') loadDashboardData();
             if(tabId === 'finance') loadFinanceData();
@@ -392,7 +418,7 @@
             });
 
             db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
-                document.getElementById('dashAnnounceCount').innerText = snapshot.size + ' Adet';
+                document.getElementById('dashAnnounceCount').innerText = snapshot.size;
                 const container = document.getElementById('dashAnnounceList');
                 container.innerHTML = '';
 
@@ -400,7 +426,6 @@
                 snapshot.forEach(doc => {
                     const a = doc.data();
                     const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-                    
                     window.announcementsMap[doc.id] = { ...a, dateStr };
 
                     if(count < 2) {
@@ -462,7 +487,6 @@
                 snapshot.forEach(doc => {
                     const a = doc.data();
                     const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-                    
                     window.announcementsMap[doc.id] = { ...a, dateStr };
 
                     let mediaIndicator = '';
@@ -483,7 +507,6 @@
             });
         }
 
-        // --- MODAL AÇMA / KAPATMA FONKSİYONLARI ---
         function openAnnouncementModal(id) {
             const a = window.announcementsMap[id];
             if (!a) return;
@@ -493,10 +516,8 @@
             document.getElementById('modalContent').innerText = a.content;
 
             const mediaContainer = document.getElementById('modalMediaContainer');
-            
             if (a.imageUrl) {
                 mediaContainer.classList.remove('hidden');
-                // Video dosyası olup olmadığını kontrol et (mp4, webm)
                 if (a.imageUrl.includes('.mp4') || a.imageUrl.includes('.webm')) {
                     mediaContainer.innerHTML = `<video src="${a.imageUrl}" controls autoplay class="w-full max-h-72 object-cover rounded-xl"></video>`;
                 } else {
@@ -509,10 +530,8 @@
 
             const modal = document.getElementById('announcementModal');
             const modalContent = document.getElementById('announcementModalContent');
-            
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-95');
@@ -522,14 +541,12 @@
         function closeAnnouncementModal() {
             const modal = document.getElementById('announcementModal');
             const modalContent = document.getElementById('announcementModalContent');
-            
             modal.classList.add('opacity-0');
             modalContent.classList.add('scale-95');
-            
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
-                document.getElementById('modalMediaContainer').innerHTML = ''; // Videoyu durdur
+                document.getElementById('modalMediaContainer').innerHTML = '';
             }, 300);
         }
 
@@ -548,10 +565,12 @@
             btn.innerText = "Gönderiliyor...";
 
             try {
+                // Şikayet gönderilirken durumu "Bekliyor" olarak kaydederiz[cite: 9]
                 await db.collection("complaints").add({
                     type,
                     title,
                     message,
+                    status: "Bekliyor",
                     userName: currentUserData.fullName,
                     userBlock: currentUserData.block,
                     userApt: currentUserData.apartment,

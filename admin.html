@@ -6,7 +6,7 @@
     <title>Balkan Yapı - Yönetici Paneli</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3a8a">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1018/1018525.png">
 
@@ -74,7 +74,7 @@
     <!-- ADMIN PANEL ROOT -->
     <div id="adminPanelRoot" class="hidden h-full flex">
 
-    <!-- Sidebar (Sol Menü) -->
+    <!-- Sidebar -->
     <aside id="sidebar" class="bg-brand-dark w-64 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-50 absolute md:relative h-full shadow-2xl">
         <div class="h-16 flex items-center justify-center border-b border-blue-900 px-4">
             <div class="flex items-center gap-3 text-white">
@@ -326,7 +326,7 @@
         const db = firebase.firestore();
 
         const ADMIN_PHONE = "5305033461"; 
-        const ADMIN_PASS = "61Nimda34.*";    
+        const ADMIN_PASS = "Admin123";    
 
         const CLOUDINARY_CLOUD_NAME = "xtu9pdgv";
         const CLOUDINARY_UPLOAD_PRESET = "balkan_site_unsigned";
@@ -704,6 +704,7 @@
             }
         }
 
+        // --- ŞİKAYETLER VE YÖNETİCİ BUTONLARI ---
         function loadComplaints() {
             const container = document.getElementById('complaintsList');
             container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
@@ -716,20 +717,57 @@
                 }
                 snapshot.forEach(doc => {
                     const c = doc.data();
+                    const id = doc.id;
                     const dateStr = c.createdAt ? new Date(c.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
                     const isComplaint = c.type === 'Şikayet';
+                    const status = c.status || 'Bekliyor';
+
+                    // Duruma göre etiket rengi belirleme
+                    let statusColor = 'bg-yellow-100 text-yellow-700';
+                    if(status === 'Çözüldü') statusColor = 'bg-green-100 text-green-700';
+                    if(status === 'İptal Edildi') statusColor = 'bg-gray-200 text-gray-700';
 
                     container.innerHTML += `
                         <div class="p-4 ${isComplaint ? 'bg-red-50 border-red-100' : 'bg-blue-50 border-blue-100'} border rounded-xl">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="${isComplaint ? 'bg-red-500' : 'bg-brand'} text-white px-2 py-0.5 rounded text-xs font-semibold">${c.type}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="${isComplaint ? 'bg-red-500' : 'bg-brand'} text-white px-2 py-0.5 rounded text-xs font-semibold">${c.type}</span>
+                                    <span class="${statusColor} px-2 py-0.5 rounded text-xs font-semibold border border-current">${status}</span>
+                                </div>
                                 <span class="text-xs text-gray-500">${dateStr} - ${c.userName} (${c.userBlock} / Daire ${c.userApt})</span>
                             </div>
                             <h4 class="font-bold text-gray-800">${c.title}</h4>
                             <p class="text-sm text-gray-600 mt-1">${c.message}</p>
+                            
+                            <!-- İşlem Butonları -->
+                            <div class="mt-4 pt-3 border-t border-gray-200/50 flex flex-wrap gap-2">
+                                <button onclick="updateComplaintStatus('${id}', 'Çözüldü')" class="text-xs bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded transition">Çözüldü İşaretle</button>
+                                <button onclick="updateComplaintStatus('${id}', 'İptal Edildi')" class="text-xs bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded transition">İptal Et</button>
+                                <button onclick="deleteComplaint('${id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded border border-red-200 transition ml-auto flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    Sil
+                                </button>
+                            </div>
                         </div>`;
                 });
             });
+        }
+
+        // --- ŞİKAYET DURUM GÜNCELLEME VE SİLME FONKSİYONLARI ---
+        function updateComplaintStatus(id, newStatus) {
+            if(confirm(`Bu bildirimi '${newStatus}' olarak güncellemek istediğinize emin misiniz?`)) {
+                db.collection("complaints").doc(id).update({ status: newStatus }).then(() => {
+                    loadComplaints();
+                }).catch(err => alert("Güncelleme hatası: " + err.message));
+            }
+        }
+
+        function deleteComplaint(id) {
+            if(confirm("Bu bildirimi sistemden tamamen silmek istediğinize emin misiniz?")) {
+                db.collection("complaints").doc(id).delete().then(() => {
+                    loadComplaints();
+                }).catch(err => alert("Silme hatası: " + err.message));
+            }
         }
 
         function loadDashboardStats() {
