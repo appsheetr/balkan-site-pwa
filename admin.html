@@ -6,7 +6,7 @@
     <title>Balkan Yapı - Yönetici Paneli</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1e3a8a">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1018/1018525.png">
 
@@ -74,7 +74,7 @@
     <!-- ADMIN PANEL ROOT -->
     <div id="adminPanelRoot" class="hidden h-full flex">
 
-    <!-- Sidebar -->
+    <!-- Sidebar (Sol Menü) -->
     <aside id="sidebar" class="bg-brand-dark w-64 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-50 absolute md:relative h-full shadow-2xl">
         <div class="h-16 flex items-center justify-center border-b border-blue-900 px-4">
             <div class="flex items-center gap-3 text-white">
@@ -113,7 +113,7 @@
             </button>
             <button onclick="switchSection('announcements')" id="nav-announcements" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
-                Duyurular & Haberler
+                Duyurular
             </button>
             <button onclick="switchSection('complaints')" id="nav-complaints" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
@@ -132,7 +132,6 @@
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col h-full overflow-hidden bg-gray-50">
         
-        <!-- Header -->
         <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 shrink-0 z-10">
             <div class="flex items-center gap-3">
                 <button onclick="toggleSidebar()" class="md:hidden text-gray-500 hover:text-brand transition">
@@ -153,9 +152,7 @@
                 
                 <!-- SECTION: DASHBOARD -->
                 <section id="section-dashboard" class="block">
-                    <!-- TIKLANABİLİR KARTLAR EKLENDİ -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        
                         <div onclick="switchSection('users')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between cursor-pointer hover:shadow-md hover:border-blue-200 transition">
                             <div>
                                 <p class="text-sm text-gray-500 font-medium">Onay Bekleyen</p>
@@ -200,7 +197,7 @@
                     </div>
                 </section>
 
-                <!-- SECTION: RESIDENTS (BLOKLARA GÖRE GRUPLANMIŞ EKRAN) -->
+                <!-- SECTION: RESIDENTS -->
                 <section id="section-residents" class="hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-5 border-b border-gray-100 flex justify-between items-center">
@@ -259,6 +256,7 @@
                                                 <th class="px-4 py-3">Tür</th>
                                                 <th class="px-4 py-3 text-center">Makbuz</th>
                                                 <th class="px-4 py-3 text-right">Tutar</th>
+                                                <th class="px-4 py-3 text-center">İşlem</th>
                                             </tr>
                                         </thead>
                                         <tbody id="financeTableBody"></tbody>
@@ -320,7 +318,7 @@
             apiKey: "AIzaSyCXF8oiGvPCvUCwq1RVKHsttIsOAnOb4kM",
             authDomain: "balkansitepwa.firebaseapp.com",
             projectId: "balkansitepwa",
-            storageBucket: "balkansitepwa.firebasestorage.app",
+            storageBucket: "balkansitepwa.appspot.com",
             messagingSenderId: "449921654999",
             appId: "1:449921654999:web:73e35ca97ef5b7d32d9092"
         };
@@ -586,17 +584,18 @@
 
         function loadFinanceData() {
             const tableBody = document.getElementById('financeTableBody');
-            tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Yükleniyor...</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Yükleniyor...</td></tr>';
 
             db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
                 tableBody.innerHTML = '';
                 if(snapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Henüz finansal kayıt eklenmemiş.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Henüz finansal kayıt eklenmemiş.</td></tr>';
                     return;
                 }
 
                 snapshot.forEach(doc => {
                     const f = doc.data();
+                    const id = doc.id;
                     const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
                     const isIncome = f.type === 'Gelir';
                     const receiptBtn = f.receiptUrl 
@@ -612,9 +611,27 @@
                             <td class="px-4 py-3"><span class="${isIncome ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-1 rounded text-xs font-semibold">${f.type}</span></td>
                             <td class="px-4 py-3 text-center">${receiptBtn}</td>
                             <td class="px-4 py-3 text-right font-bold ${isIncome ? 'text-green-600' : 'text-gray-900'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR')} ₺</td>
+                            <td class="px-4 py-3 text-center">
+                                <button onclick="deleteFinanceRecord('${id}')" title="İşlemi Sil" class="text-gray-400 hover:text-red-500 transition">
+                                    <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </td>
                         </tr>`;
                 });
             });
+        }
+
+        function deleteFinanceRecord(id) {
+            if(confirm("Bu finansal kaydı tamamen silmek istediğinize emin misiniz?")) {
+                db.collection("finance").doc(id).delete().then(() => {
+                    alert("Kayıt başarıyla silindi.");
+                    loadFinanceData();
+                    loadDashboardStats();
+                }).catch(error => {
+                    console.error("Silme hatası:", error);
+                    alert("Kayıt silinirken hata oluştu: " + error.message);
+                });
+            }
         }
 
         async function handleAddAnnouncement() {
