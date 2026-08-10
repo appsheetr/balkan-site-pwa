@@ -317,7 +317,7 @@
                     </div>
                 </section>
 
-                <!-- SECTION: SETTINGS -->
+                <!-- SECTION: SETTINGS (ŞİFRE DEĞİŞTİRME) -->
                 <section id="section-settings" class="hidden">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-lg">
                         <h3 class="font-bold text-gray-800 mb-4">Yönetici Şifresini Değiştir</h3>
@@ -561,7 +561,8 @@
                 db.collection("users").doc(id).delete().then(() => {
                     alert("Sakin kaydı silindi.");
                     loadApprovedResidentsByBlocks();
-                });
+                    loadDashboardStats();
+                }).catch(err => alert("Hata: " + err.message));
             }
         }
 
@@ -712,11 +713,10 @@
                     const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
                     const imgHtml = a.imageUrl ? `<img src="${a.imageUrl}" class="w-full h-40 object-cover rounded-lg my-2 border border-gray-200">` : '';
                     
-                    // LİNK KOPYALAMA ALANI GÜNCELLENDİ
                     const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '').replace(/\/$/, '');
                     const appUrl = `${baseUrl}/dashboard.html?id=${doc.id}`;
                     
-                    const waText = encodeURIComponent(`📣 Balkan Yapı Sitesi - Yeni Duyuru*\n*${a.title}\n\n${a.content}\n\nDetaylar için tıklayın:\n${appUrl}`);
+                    const waText = encodeURIComponent(`📣 Balkan Yapı Sitesi - Yeni Duyuru\n*${a.title}*\n\n${a.content}\n\nDetaylar için tıklayın:\n${appUrl}`);
                     const waLink = `https://api.whatsapp.com/send?text=${waText}`;
 
                     container.innerHTML += `
@@ -739,6 +739,19 @@
                         </div>`;
                 });
             });
+        }
+
+        // --- YENİ EKLENEN SİLME FONKSİYONU ---
+        function deleteAnnouncement(id) {
+            if(confirm("Duyuruyu silmek istediğinize emin misiniz?")) {
+                db.collection("announcements").doc(id).delete().then(() => {
+                    alert("Duyuru başarıyla silindi.");
+                    loadAnnouncements();
+                    loadDashboardStats();
+                }).catch(err => {
+                    alert("Hata oluştu: " + err.message);
+                });
+            }
         }
 
         function loadComplaints() {
@@ -798,7 +811,9 @@
         function deleteComplaint(id) {
             if(confirm("Bu bildirimi sistemden tamamen silmek istediğinize emin misiniz?")) {
                 db.collection("complaints").doc(id).delete().then(() => {
+                    alert("Bildirim silindi.");
                     loadComplaints();
+                    loadDashboardStats();
                 }).catch(err => alert("Silme hatası: " + err.message));
             }
         }
