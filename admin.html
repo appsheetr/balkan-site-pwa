@@ -68,7 +68,6 @@
                 <button type="submit" id="adminLoginBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md">Giriş Yap</button>
                 <p id="adminLoginError" class="text-xs text-red-500 text-center mt-3 hidden">Telefon veya şifre hatalı.</p>
             </form>
-            
             <p class="text-center text-xs text-gray-500 mt-6">
                 Site sakini misiniz? <a href="index.html" class="text-brand hover:underline font-semibold">Kullanıcı Girişi</a>
             </p>
@@ -78,7 +77,7 @@
     <!-- ADMIN PANEL ROOT -->
     <div id="adminPanelRoot" class="hidden h-full flex">
 
-    <!-- Sidebar (Sol Menü) -->
+    <!-- Sidebar -->
     <aside id="sidebar" class="bg-brand-dark w-64 flex-shrink-0 hidden md:flex flex-col transition-all duration-300 z-50 absolute md:relative h-full shadow-2xl">
         <div class="h-16 flex items-center justify-center border-b border-blue-900 px-4">
             <div class="flex items-center gap-3 text-white">
@@ -118,6 +117,10 @@
             <button onclick="switchSection('announcements')" id="nav-announcements" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
                 Duyurular
+            </button>
+            <button onclick="switchSection('decisions')" id="nav-decisions" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Yönetim Kararları
             </button>
             <button onclick="switchSection('complaints')" id="nav-complaints" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
@@ -307,6 +310,49 @@
                     </div>
                 </section>
 
+                <!-- SECTION: DECISIONS (YÖNETİM KARARLARI & KATILIMCILAR) -->
+                <section id="section-decisions" class="hidden">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-800" id="decisionFormTitle">Yeni Karar Ekle</h3>
+                            <button type="button" onclick="resetDecisionForm()" id="decCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et / Yeni Ekle</button>
+                        </div>
+                        <form id="decisionForm" onsubmit="event.preventDefault(); handleAddOrUpdateDecision();">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Başlığı / Konusu</label>
+                                <input type="text" id="decTitle" placeholder="Örn: 2026 Yılı Olağanüstü Genel Kurul Kararı" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Metni / İçerik</label>
+                                <textarea id="decContent" rows="4" placeholder="Alınan kararları satır satır yazabilirsiniz..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></textarea>
+                            </div>
+                            
+                            <!-- KATILIMCILAR (ÇOKLU SEÇİM) EKLENDİ -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karara Katılan Sakinler (Çoklu Seçim)</label>
+                                <div id="decParticipantsList" class="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1 bg-gray-50">
+                                    <p class="text-xs text-gray-400 p-1">Sakinler yükleniyor...</p>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Seçilen katılımcı sayısı: <span id="decParticipantCount" class="font-bold text-brand">0</span></p>
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Belgesi (PDF veya Resim - Opsiyonel)</label>
+                                <input type="file" id="decFile" accept="image/*, application/pdf" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-brand hover:file:bg-blue-100 border border-gray-300 rounded-lg outline-none bg-white">
+                                <p id="decFileHint" class="text-xs text-gray-400 mt-1 hidden">Yeni belge seçerseniz eski belge silinir/değişir. Boş bırakırsanız eski belge korunur.</p>
+                            </div>
+                            <button type="submit" id="decSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2 px-6 rounded-lg transition">Kararı Kaydet</button>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 border-b border-gray-100">
+                            <h3 class="font-bold text-gray-800">Sisteme Kayıtlı Yönetim Kararları</h3>
+                        </div>
+                        <div class="p-5 space-y-4" id="decisionsList"></div>
+                    </div>
+                </section>
+
                 <!-- SECTION: COMPLAINTS -->
                 <section id="section-complaints" class="hidden">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -317,7 +363,7 @@
                     </div>
                 </section>
 
-                <!-- SECTION: SETTINGS (ŞİFRE DEĞİŞTİRME) -->
+                <!-- SECTION: SETTINGS -->
                 <section id="section-settings" class="hidden">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-lg">
                         <h3 class="font-bold text-gray-800 mb-4">Yönetici Şifresini Değiştir</h3>
@@ -364,30 +410,25 @@
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
             formData.append('folder', 'receipts');
 
-            const response = await fetch(CLOUDINARY_UPLOAD_URL, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                throw new Error(errData?.error?.message || 'Cloudinary yükleme hatası');
-            }
-
+            const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Cloudinary yükleme hatası');
             const data = await response.json();
             return data.secure_url;
         }
 
-        const sections = ['dashboard', 'users', 'residents', 'finance', 'announcements', 'complaints', 'settings'];
+        const sections = ['dashboard', 'users', 'residents', 'finance', 'announcements', 'complaints', 'settings', 'decisions'];
         const titles = {
             'dashboard': 'Özet Ekranı',
             'users': 'Sakin Onayları',
             'residents': 'Site Sakinleri (Bloklu)',
             'finance': 'Gelir / Gider Yönetimi',
             'announcements': 'Duyurular',
+            'decisions': 'Yönetim Kararları',
             'complaints': 'Şikayet ve Öneriler',
             'settings': 'Ayarlar'
         };
+
+        let editingDecisionId = null;
 
         function switchSection(sectionId) {
             sections.forEach(sec => {
@@ -410,6 +451,10 @@
             if(sectionId === 'residents') loadApprovedResidentsByBlocks();
             if(sectionId === 'finance') loadFinanceData();
             if(sectionId === 'announcements') loadAnnouncements();
+            if(sectionId === 'decisions') {
+                loadDecisions();
+                populateDecisionParticipants(); // SAKİNLERİ MULTI-SELECT İÇİN GETİR
+            }
             if(sectionId === 'complaints') loadComplaints();
             if(sectionId === 'dashboard') loadDashboardStats();
         }
@@ -655,10 +700,7 @@
                     alert("Kayıt başarıyla silindi.");
                     loadFinanceData();
                     loadDashboardStats();
-                }).catch(error => {
-                    console.error("Silme hatası:", error);
-                    alert("Kayıt silinirken hata oluştu: " + error.message);
-                });
+                }).catch(error => alert("Kayıt silinirken hata oluştu: " + error.message));
             }
         }
 
@@ -716,7 +758,7 @@
                     const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '').replace(/\/$/, '');
                     const appUrl = `${baseUrl}/dashboard.html?id=${doc.id}`;
                     
-                    const waText = encodeURIComponent(`📣 Balkan Yapı Sitesi - Yeni Duyuru\n*${a.title}*\n\n${a.content}\n\nDetaylar için tıklayın:\n${appUrl}`);
+                    const waText = encodeURIComponent(`*📣 Balkan Yapı Sitesi - Yeni Duyuru*\n*${a.title}*\n\n${a.content}\n\nDetaylar için tıklayın:\n${appUrl}`);
                     const waLink = `https://api.whatsapp.com/send?text=${waText}`;
 
                     container.innerHTML += `
@@ -741,16 +783,174 @@
             });
         }
 
-        // --- YENİ EKLENEN SİLME FONKSİYONU ---
         function deleteAnnouncement(id) {
             if(confirm("Duyuruyu silmek istediğinize emin misiniz?")) {
                 db.collection("announcements").doc(id).delete().then(() => {
                     alert("Duyuru başarıyla silindi.");
                     loadAnnouncements();
                     loadDashboardStats();
-                }).catch(err => {
-                    alert("Hata oluştu: " + err.message);
+                }).catch(err => alert("Hata oluştu: " + err.message));
+            }
+        }
+
+        // --- YÖNETİM KARARLARI VE KATILIMCILAR ---
+        function populateDecisionParticipants() {
+            const container = document.getElementById('decParticipantsList');
+            container.innerHTML = '<p class="text-xs text-gray-400 p-2">Sakinler yükleniyor...</p>';
+            
+            db.collection("users").where("isApproved", "==", true).get().then(snap => {
+                container.innerHTML = '';
+                if(snap.empty) {
+                    container.innerHTML = '<p class="text-xs text-gray-400 p-2">Kayıtlı ve onaylı sakin bulunamadı.</p>';
+                    return;
+                }
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    const label = `${u.fullName} (${u.block} / D.${u.apartment})`;
+                    container.innerHTML += `
+                        <label class="flex items-center gap-2 p-1.5 hover:bg-gray-100 rounded cursor-pointer border-b border-gray-100 last:border-0">
+                            <input type="checkbox" name="decParticipant" value="${label}" class="rounded text-brand focus:ring-brand w-4 h-4" onchange="updateParticipantCount()">
+                            <span class="text-sm text-gray-700 font-medium">${label}</span>
+                        </label>
+                    `;
                 });
+            });
+        }
+
+        function updateParticipantCount() {
+            const count = document.querySelectorAll('input[name="decParticipant"]:checked').length;
+            document.getElementById('decParticipantCount').innerText = count;
+        }
+
+        function resetDecisionForm() {
+            editingDecisionId = null;
+            document.getElementById('decisionForm').reset();
+            document.getElementById('decisionFormTitle').innerText = "Yeni Karar Ekle";
+            document.getElementById('decSubmitBtn').innerText = "Kararı Kaydet";
+            document.getElementById('decCancelBtn').classList.add('hidden');
+            document.getElementById('decFileHint').classList.add('hidden');
+            document.querySelectorAll('input[name="decParticipant"]').forEach(cb => cb.checked = false);
+            updateParticipantCount();
+        }
+
+        async function handleAddOrUpdateDecision() {
+            const title = document.getElementById('decTitle').value;
+            const content = document.getElementById('decContent').value;
+            const fileInput = document.getElementById('decFile');
+            const btn = document.getElementById('decSubmitBtn');
+            
+            // Seçilen katılımcıları topla
+            const participants = Array.from(document.querySelectorAll('input[name="decParticipant"]:checked')).map(cb => cb.value);
+
+            btn.disabled = true;
+            btn.innerText = "Kaydediliyor...";
+
+            try {
+                let fileUrl = null;
+                if(fileInput.files.length > 0) {
+                    btn.innerText = "Belge Yükleniyor...";
+                    fileUrl = await uploadToCloudinary(fileInput.files[0]);
+                }
+
+                if(editingDecisionId) {
+                    const updateData = { title, content, participants, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                    if(fileUrl) updateData.fileUrl = fileUrl;
+
+                    await db.collection("decisions").doc(editingDecisionId).update(updateData);
+                    alert("Karar başarıyla güncellendi.");
+                } else {
+                    await db.collection("decisions").add({
+                        title, content, fileUrl, participants,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert("Yeni karar başarıyla kaydedildi.");
+                }
+                resetDecisionForm();
+                loadDecisions();
+            } catch (error) {
+                alert("Karar kaydetme hatası: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = editingDecisionId ? "Kararı Güncelle" : "Kararı Kaydet";
+            }
+        }
+
+        function loadDecisions() {
+            const container = document.getElementById('decisionsList');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
+
+            db.collection("decisions").orderBy("createdAt", "desc").get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">Sistemde kayıtlı yönetim kararı bulunmuyor.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const dateStr = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
+                    const fileHtml = d.fileUrl 
+                        ? `<a href="${d.fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-brand bg-blue-50 px-3 py-1.5 rounded hover:bg-blue-100 transition mt-2">
+                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Belgeyi Gör
+                           </a>` 
+                        : '';
+                    
+                    const participants = d.participants || [];
+                    const partHtml = participants.length > 0 
+                        ? `<div class="mt-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                             <p class="text-xs font-semibold text-brand mb-1">Katılımcılar (${participants.length} Kişi):</p>
+                             <p class="text-xs text-gray-600 leading-relaxed">${participants.join(', ')}</p>
+                           </div>`
+                        : '';
+
+                    const safeTitle = d.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeContent = d.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+                    const safeParts = participants.join('|||'); // Array'i string olarak sakla
+
+                    container.innerHTML += `
+                        <div class="p-4 bg-white border border-gray-200 rounded-xl relative shadow-sm">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-bold text-gray-800">${d.title}</h4>
+                                <span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">${dateStr}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 whitespace-pre-wrap">${d.content}</p>
+                            ${partHtml}
+                            ${fileHtml}
+                            
+                            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+                                <button onclick="editDecision('${doc.id}', '${safeTitle}', '${safeContent}', '${safeParts}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded transition font-medium">Düzenle</button>
+                                <button onclick="deleteDecision('${doc.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded transition font-medium ml-auto">Sil</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        function editDecision(id, title, content, participantsStr) {
+            editingDecisionId = id;
+            document.getElementById('decTitle').value = title;
+            document.getElementById('decContent').value = content.replace(/\\n/g, '\n');
+            
+            // Katılımcıları işaretle
+            const parts = participantsStr ? participantsStr.split('|||') : [];
+            document.querySelectorAll('input[name="decParticipant"]').forEach(cb => {
+                cb.checked = parts.includes(cb.value);
+            });
+            updateParticipantCount();
+            
+            document.getElementById('decisionFormTitle').innerText = "Kararı Düzenle";
+            document.getElementById('decSubmitBtn').innerText = "Kararı Güncelle";
+            document.getElementById('decCancelBtn').classList.remove('hidden');
+            document.getElementById('decFileHint').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteDecision(id) {
+            if(confirm("Bu kararı sistemden tamamen silmek istediğinize emin misiniz?")) {
+                db.collection("decisions").doc(id).delete().then(() => {
+                    alert("Karar başarıyla silindi.");
+                    loadDecisions();
+                }).catch(err => alert("Silme hatası: " + err.message));
             }
         }
 
