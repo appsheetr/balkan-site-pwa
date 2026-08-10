@@ -1,6 +1,6 @@
 {
-  "name": "Balkan Yapı Sitesi",
-  "short_name": "Balkan Site",
+  "name": "Balkan Site Yönetimi",
+  "short_name": "Balkan Site Yönetimi",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#eff6ff",
