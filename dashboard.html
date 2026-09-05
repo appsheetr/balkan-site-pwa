@@ -141,6 +141,7 @@
                                     <tr>
                                         <th class="px-3 py-3 font-semibold">Tarih</th>
                                         <th class="px-3 py-3 font-semibold">Açıklama</th>
+                                        <th class="px-3 py-3 font-semibold">Tür</th>
                                         <th class="px-3 py-3 text-center font-semibold">Makbuz</th>
                                         <th class="px-3 py-3 text-right font-semibold">Tutar</th>
                                     </tr>
@@ -482,71 +483,94 @@
         }
 
         function loadDashboardData() {
-            db.collection("finance").get().then(snapshot => {
-                let total = 0;
-                snapshot.forEach(doc => {
-                    const f = doc.data();
-                    if(f.type === 'Gelir') total += f.amount;
-                    if(f.type === 'Gider') total -= f.amount;
-                });
-                document.getElementById('dashBalance').innerText = total.toLocaleString('tr-TR') + ' ₺';
-            });
+    db.collection("finance").get().then(snapshot => {
+        let total = 0;
+        snapshot.forEach(doc => {
+            const f = doc.data();
+            if(f.type === 'Gelir') total += f.amount;
+            if(f.type === 'Gider') total -= f.amount;
+        });
+        document.getElementById('dashBalance').innerText = total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+    });
 
-            db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
-                document.getElementById('dashAnnounceCount').innerText = snapshot.size;
-                const container = document.getElementById('dashAnnounceList');
-                container.innerHTML = '';
+    db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
+        const container = document.getElementById('dashAnnounceList');
+        container.innerHTML = '';
+        
+        const today = new Date().toISOString().split('T')[0];
+        let activeCount = 0;
+        let displayCount = 0;
 
-                let count = 0;
-                snapshot.forEach(doc => {
-                    const a = doc.data();
-                    const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-                    window.announcementsMap[doc.id] = { ...a, dateStr };
+        snapshot.forEach(doc => {
+            const a = doc.data();
+            const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
+            window.announcementsMap[doc.id] = { ...a, dateStr };
 
-                    if(count < 2) {
-                        container.innerHTML += `
-                            <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-gold cursor-pointer hover:shadow-plate transition-all group">
-                                <div class="flex justify-between items-start gap-2 mb-1">
-                                    <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
-                                    <span class="shrink-0 text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">${dateStr}</span>
-                                </div>
-                                <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">${a.content}</p>
-                            </div>`;
-                        count++;
-                    }
-                });
-            });
+            // Bitiş tarihi varsa ve geçmişse pasif say, yoksa aktif say
+            const isActive = !a.endDate || a.endDate >= today;
+
+            if (isActive) {
+                activeCount++;
+                if (displayCount < 2) { // Sadece aktif olanlardan son 2 tanesini göster
+                    container.innerHTML += `
+                        <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-gold cursor-pointer hover:shadow-plate transition-all group">
+                            <div class="flex justify-between items-start gap-2 mb-1">
+                                <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
+                                <span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full">Yeni</span>
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">${a.content}</p>
+                        </div>`;
+                    displayCount++;
+                }
+            }
+        });
+
+        document.getElementById('dashAnnounceCount').innerText = activeCount;
+        if(displayCount === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-400">Şu an aktif bir duyuru bulunmuyor.</p>';
         }
+    });
+}
 
         function loadFinanceData() {
-            const tableBody = document.getElementById('residentFinanceTable');
-            tableBody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">Yükleniyor...</td></tr>';
+    const tableBody = document.getElementById('residentFinanceTable');
+    // Yeni sütun eklendiği için colspan="5" yapıldı
+    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Yükleniyor...</td></tr>';
 
-            db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
-                tableBody.innerHTML = '';
-                if(snapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">Kayıt bulunmuyor.</td></tr>';
-                    return;
-                }
-
-                snapshot.forEach(doc => {
-                    const f = doc.data();
-                    const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-                    const isIncome = f.type === 'Gelir';
-                    const receiptBtn = f.receiptUrl 
-                        ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold" title="Görüntüle">Gör</a>`
-                        : '<span class="text-slate-300">-</span>';
-
-                    tableBody.innerHTML += `
-                        <tr class="bg-white border-b border-slate-50 last:border-b-0 hover:bg-slate-50/60 transition-colors">
-                            <td class="px-3 py-3 text-slate-400">${dateStr}</td>
-                            <td class="px-3 py-3 font-medium text-ink">${f.description}</td>
-                            <td class="px-3 py-3 text-center">${receiptBtn}</td>
-                            <td class="px-3 py-3 text-right font-serif font-semibold tabular-nums ${isIncome ? 'text-emerald-600' : 'text-ink'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR')} ₺</td>
-                        </tr>`;
-                });
-            });
+    db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
+        tableBody.innerHTML = '';
+        if(snapshot.empty) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kayıt bulunmuyor.</td></tr>';
+            return;
         }
+
+        snapshot.forEach(doc => {
+            const f = doc.data();
+            const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
+            const isIncome = f.type === 'Gelir';
+            const receiptBtn = f.receiptUrl 
+                ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold" title="Görüntüle">Gör</a>`
+                : '<span class="text-slate-300">-</span>';
+
+            // Satır arkaplanını ve hover (üzerine gelince) renklerini türe göre belirliyoruz
+            const rowBg = isIncome 
+                ? 'bg-green-50/50 hover:bg-green-50' 
+                : 'bg-red-50/50 hover:bg-red-50';
+            
+            // Türü daha şık göstermek için küçük bir etiket (badge) oluşturuyoruz
+            const typeBadge = `<span class="${isIncome ? 'text-green-700 bg-green-100/70 border-green-200' : 'text-red-700 bg-red-100/70 border-red-200'} px-2 py-0.5 rounded text-[10px] font-bold border">${f.type}</span>`;
+
+            tableBody.innerHTML += `
+                <tr class="${rowBg} border-b border-slate-100 last:border-b-0 transition-colors">
+                    <td class="px-3 py-3 text-slate-500">${dateStr}</td>
+                    <td class="px-3 py-3 font-medium text-ink">${f.description}</td>
+                    <td class="px-3 py-3">${typeBadge}</td>
+                    <td class="px-3 py-3 text-center">${receiptBtn}</td>
+                    <td class="px-3 py-3 text-right font-serif font-semibold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-600'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</td>
+                </tr>`;
+        });
+    });
+}
 
         // --- YÖNETİM KARARLARI (SAKİN GÖRÜNÜMÜ) ---
         function loadDecisionsData() {
@@ -593,45 +617,56 @@
         }
 
         function loadAnnouncementsData() {
-            const container = document.getElementById('fullAnnounceList');
-            container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
+    const container = document.getElementById('fullAnnounceList');
+    container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
 
-            db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
-                container.innerHTML = '';
-                if(snapshot.empty) {
-                    container.innerHTML = '<p class="text-xs text-slate-400">Yayınlanmış duyuru bulunmuyor.</p>';
-                    return;
-                }
-
-                snapshot.forEach(doc => {
-                    const a = doc.data();
-                    const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-                    window.announcementsMap[doc.id] = { ...a, dateStr };
-
-                    let mediaIndicator = '';
-                    if(a.imageUrl) {
-                        mediaIndicator = `<div class="mt-3 text-[10px] font-semibold text-brand flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Medyayı Görüntüle</div>`;
-                    }
-
-                    container.innerHTML += `
-                        <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-gold cursor-pointer hover:shadow-plate transition-all group">
-                            <div class="flex justify-between items-start gap-2 mb-1">
-                                <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
-                                <span class="shrink-0 text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">${dateStr}</span>
-                            </div>
-                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1">${a.content}</p>
-                            ${mediaIndicator}
-                        </div>`;
-                });
-
-                const targetId = localStorage.getItem('targetAnnounceId');
-                if (targetId && window.announcementsMap[targetId]) {
-                    switchTab('announcements');
-                    setTimeout(() => { openAnnouncementModal(targetId); }, 300);
-                    localStorage.removeItem('targetAnnounceId');
-                }
-            });
+    db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
+        container.innerHTML = '';
+        if(snapshot.empty) {
+            container.innerHTML = '<p class="text-xs text-slate-400">Yayınlanmış duyuru bulunmuyor.</p>';
+            return;
         }
+
+        const today = new Date().toISOString().split('T')[0];
+
+        snapshot.forEach(doc => {
+            const a = doc.data();
+            const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
+            window.announcementsMap[doc.id] = { ...a, dateStr };
+
+            const isActive = !a.endDate || a.endDate >= today;
+            
+            let statusBadge = isActive 
+                ? `<span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full border border-blue-100">Aktif</span>` 
+                : `<span class="shrink-0 text-[10px] text-slate-400 bg-slate-100 font-medium px-2 py-0.5 rounded-full border border-slate-200">Süresi Doldu</span>`;
+
+            let mediaIndicator = '';
+            if(a.imageUrl) {
+                mediaIndicator = `<div class="mt-3 text-[10px] font-semibold text-brand flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Medyayı Görüntüle</div>`;
+            }
+
+            container.innerHTML += `
+                <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] ${isActive ? 'border-l-gold' : 'border-l-slate-300 opacity-75'} cursor-pointer hover:shadow-plate transition-all group">
+                    <div class="flex justify-between items-start gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
+                            ${statusBadge}
+                        </div>
+                        <span class="shrink-0 text-[10px] text-slate-400 bg-white px-2 py-0.5 rounded-full">${dateStr}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1">${a.content}</p>
+                    ${mediaIndicator}
+                </div>`;
+        });
+
+        const targetId = localStorage.getItem('targetAnnounceId');
+        if (targetId && window.announcementsMap[targetId]) {
+            switchTab('announcements');
+            setTimeout(() => { openAnnouncementModal(targetId); }, 300);
+            localStorage.removeItem('targetAnnounceId');
+        }
+    });
+}
 
         function openAnnouncementModal(id) {
             const a = window.announcementsMap[id];
