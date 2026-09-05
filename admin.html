@@ -400,6 +400,20 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // --- ŞİFRE GÜVENLİĞİ: SHA-256 + SALT İLE HASHLEME ---
+        function generateSalt() {
+            const arr = new Uint8Array(16);
+            crypto.getRandomValues(arr);
+            return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function hashPassword(password, salt) {
+            const enc = new TextEncoder();
+            const data = enc.encode(salt + ":" + password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         const CLOUDINARY_CLOUD_NAME = "xtu9pdgv";
         const CLOUDINARY_UPLOAD_PRESET = "balkan_site_unsigned";
         const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
@@ -1042,42 +1056,7 @@
             });
         }
 
-        async function handleAdminLogin() {
-            const phone = document.getElementById('adminLoginPhone').value.trim();
-            const pass = document.getElementById('adminLoginPass').value;
-            const errorEl = document.getElementById('adminLoginError');
-            const btn = document.getElementById('adminLoginBtn');
-
-            btn.disabled = true;
-            btn.innerText = "Giriş Yapılıyor...";
-
-            try {
-                const docRef = await db.collection("settings").doc("adminProfile").get();
-                let validPhone = "5305033461";
-                let validPass = "Admin123";
-
-                if (docRef.exists) {
-                    validPhone = docRef.data().phone || validPhone;
-                    validPass = docRef.data().password || validPass;
-                }
-
-                if (phone === validPhone && pass === validPass) {
-                    localStorage.setItem('userRole', 'admin');
-                    errorEl.classList.add('hidden');
-                    document.getElementById('adminLoginScreen').classList.add('hidden');
-                    document.getElementById('adminPanelRoot').classList.remove('hidden');
-                    loadDashboardStats();
-                } else {
-                    errorEl.classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Giriş yapılırken hata oluştu.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Giriş Yap";
-            }
-        }
+        
 
         async function handleAdminPasswordChange() {
             const newPass = document.getElementById('adminNewPass').value;
@@ -1098,9 +1077,14 @@
             btn.innerText = "Güncelleniyor...";
 
             try {
+                const newSalt = generateSalt();
+                const newHash = await hashPassword(newPass, newSalt);
+
                 await db.collection("settings").doc("adminProfile").set({
                     phone: "5305033461",
-                    password: newPass
+                    passwordHash: newHash,
+                    passwordSalt: newSalt,
+                    password: firebase.firestore.FieldValue.delete()
                 }, { merge: true });
 
                 alert("Yönetici şifreniz başarıyla değiştirildi! Lütfen yeni şifrenizle tekrar giriş yapın.");
@@ -1112,18 +1096,58 @@
             }
         }
 
-        window.onload = () => {
-            if (localStorage.getItem('userRole') === 'admin') {
-                document.getElementById('adminLoginScreen').classList.add('hidden');
-                document.getElementById('adminPanelRoot').classList.remove('hidden');
-                loadDashboardStats();
-            }
-        };
+       // YENİ GİRİŞ FONKSİYONU
+async function handleAdminLogin() {
+    const phone = document.getElementById('adminLoginPhone').value.trim();
+    const pass = document.getElementById('adminLoginPass').value;
+    const errorEl = document.getElementById('adminLoginError');
+    const btn = document.getElementById('adminLoginBtn');
 
-        function logout() {
-            localStorage.removeItem('userRole');
-            window.location.reload();
+    btn.disabled = true;
+    btn.innerText = "Giriş Yapılıyor...";
+
+    try {
+        // Ekrana girilen telefonu alıp arka planda e-postaya çeviriyoruz
+        const adminEmail = phone + "@balkan-admin.com"; 
+        
+        // Firebase Authentication ile giriş yapıyoruz (eski db.collection('settings') okuması KALDIRILDI)
+        await firebase.auth().signInWithEmailAndPassword(adminEmail, pass);
+
+        errorEl.classList.add('hidden');
+        document.getElementById('adminLoginScreen').classList.add('hidden');
+        document.getElementById('adminPanelRoot').classList.remove('hidden');
+        loadDashboardStats();
+    } catch (error) {
+        console.error("Giriş Hatası:", error);
+        errorEl.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Giriş Yap";
+    }
+}
+
+// YENİ ÇIKIŞ FONKSİYONU
+function logout() {
+    firebase.auth().signOut().then(() => {
+        window.location.reload();
+    });
+}
+
+// YENİ OTURUM KONTROLÜ (Sayfa yenilendiğinde hattan düşmemek için)
+window.onload = () => {
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user && user.email && user.email.includes('@balkan-admin.com')) {
+            document.getElementById('adminLoginScreen').classList.add('hidden');
+            document.getElementById('adminPanelRoot').classList.remove('hidden');
+            loadDashboardStats();
+        } else {
+            document.getElementById('adminLoginScreen').classList.remove('hidden');
+            document.getElementById('adminPanelRoot').classList.add('hidden');
         }
+    });
+};
+
+        
     </script>
 </body>
 </html>

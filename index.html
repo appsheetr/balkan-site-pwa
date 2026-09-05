@@ -36,6 +36,7 @@
 
     <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-brand-light text-gray-800 antialiased min-h-screen flex flex-col items-center justify-center p-4">
@@ -206,6 +207,21 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // --- ŞİFRE GÜVENLİĞİ: SHA-256 + SALT İLE HASHLEME ---
+        // Şifreler artık veritabanına asla düz metin olarak yazılmaz.
+        function generateSalt() {
+            const arr = new Uint8Array(16);
+            crypto.getRandomValues(arr);
+            return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function hashPassword(password, salt) {
+            const enc = new TextEncoder();
+            const data = enc.encode(salt + ":" + password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         // --- SIFIR İLE BAŞLAMA ENGELİ ---
         function validatePhoneInput(input) {
             let val = input.value.replace(/\D/g, '');
@@ -309,12 +325,13 @@
                 return;
             }
 
-            if (pass1.length < 4) {
-                alert("Şifreniz en az 4 karakter olmalıdır.");
+            if (pass1.length < 6) {
+                alert("Firebase güvenlik kuralları gereği şifreniz en az 6 karakter olmalıdır.");
                 return;
             }
 
             const fullPhone = "+90" + rawPhone;
+            const pseudoEmail = rawPhone + "@balkan-resident.com";
 
             btn.disabled = true;
             btn.innerText = "Kaydediliyor...";
@@ -342,6 +359,10 @@
                     return;
                 }
 
+                // Gerçek Firebase Authentication hesabı oluşturulur - şifre artık
+                // hiçbir şekilde Firestore'a yazılmıyor, Google'ın kimlik altyapısında tutuluyor.
+                const cred = await firebase.auth().createUserWithEmailAndPassword(pseudoEmail, pass1);
+
                 await db.collection("users").add({
                     fullName,
                     phone: fullPhone,
@@ -349,17 +370,26 @@
                     apartment: apt,
                     status,
                     job,
-                    password: pass1,
+                    uid: cred.user.uid,
                     isApproved: false, // Yönetici Onayına Düşer
                     createdAt: new Date()
                 });
+
+                // Onay bekleneceği için oturumu hemen kapatıyoruz
+                await firebase.auth().signOut();
 
                 document.getElementById('registerFormElement').classList.add('hidden');
                 document.getElementById('successSection').classList.remove('hidden');
 
             } catch (error) {
                 console.error("Kayıt Hatası:", error);
-                alert("Kayıt sırasında bir hata oluştu: " + error.message);
+                if (error.code === 'auth/email-already-in-use') {
+                    alert("Bu telefon numarasıyla daha önce kayıt yapılmış.");
+                } else if (error.code === 'auth/weak-password') {
+                    alert("Şifreniz en az 6 karakter olmalıdır.");
+                } else {
+                    alert("Kayıt sırasında bir hata oluştu: " + error.message);
+                }
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Kayıt Ol";
@@ -367,65 +397,109 @@
         }
 
         // --- GİRİŞ YAPMA VE ŞİFRE KONTROLÜ (SADECE SİTE SAKİNLERİ) ---
-        async function handleLogin() {
-            const rawPhone = document.getElementById('loginPhone').value.trim();
-            const pass = document.getElementById('loginPassword').value;
-            const btn = document.getElementById('loginSubmitBtn');
+       async function handleLogin() {
+    const rawPhone = document.getElementById('loginPhone').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginSubmitBtn');
 
-            if(rawPhone.length !== 10 || !pass) {
-                alert("Lütfen telefon numaranızı ve şifrenizi eksiksiz girin.");
+    if(rawPhone.length !== 10 || !pass) {
+        alert("Lütfen telefon numaranızı ve şifrenizi eksiksiz girin.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Giriş Yapılıyor...";
+
+    const fullPhone = "+90" + rawPhone;
+    const pseudoEmail = rawPhone + "@balkan-resident.com";
+
+    try {
+        try {
+            // Önce gerçek Firebase Authentication girişini dene
+            await firebase.auth().signInWithEmailAndPassword(pseudoEmail, pass);
+        } catch (authError) {
+            // Firebase güvenlik güncellemesi nedeniyle artık 'user-not-found' dönmüyor.
+            // O yüzden hata ne olursa olsun eski veritabanındaki kullanıcıları kontrol etmeliyiz.
+            
+            const querySnapshot = await db.collection("users").where("phone", "==", fullPhone).get();
+            if (querySnapshot.empty) {
+                alert("Hatalı şifre veya kayıt bulunamadı.");
+                btn.disabled = false;
+                btn.innerText = "Giriş Yap";
                 return;
             }
 
-            btn.disabled = true;
-            btn.innerText = "Giriş Yapılıyor...";
+            const legacyDoc = querySnapshot.docs[0];
+            const legacyData = legacyDoc.data();
 
-            const fullPhone = "+90" + rawPhone;
+            let legacyValid = false;
+            if (legacyData.passwordHash && legacyData.passwordSalt) {
+                const enteredHash = await hashPassword(pass, legacyData.passwordSalt);
+                legacyValid = (enteredHash === legacyData.passwordHash);
+            } else if (legacyData.password) {
+                legacyValid = (legacyData.password === pass);
+            }
 
+            if (!legacyValid) {
+                alert("Hatalı şifre girdiniz!");
+                btn.disabled = false;
+                btn.innerText = "Giriş Yap";
+                return;
+            }
+
+            // Doğru şifre girildi: Kullanıcıyı sessizce yeni Authentication sistemine geçir
             try {
-                // Veritabanında telefon numarasını ara
-                const querySnapshot = await db.collection("users").where("phone", "==", fullPhone).get();
-
-                if (querySnapshot.empty) {
-                    alert("Bu telefon numarasına ait bir kayıt bulunamadı.");
-                    btn.disabled = false;
-                    btn.innerText = "Giriş Yap";
-                    return;
-                }
-
-                let userDoc = null;
-                querySnapshot.forEach(doc => {
-                    userDoc = doc.data();
+                const cred = await firebase.auth().createUserWithEmailAndPassword(pseudoEmail, pass);
+                await db.collection("users").doc(legacyDoc.id).update({
+                    uid: cred.user.uid,
+                    password: firebase.firestore.FieldValue.delete(),
+                    passwordHash: firebase.firestore.FieldValue.delete(),
+                    passwordSalt: firebase.firestore.FieldValue.delete()
                 });
-
-                // Şifre Kontrolü
-                if (userDoc.password !== pass) {
+            } catch (createError) {
+                if (createError.code === 'auth/email-already-in-use') {
+                    // Hesap zaten yeni sistemdeyse ama buraya düştüyse şifreyi yanlış girmiştir
                     alert("Hatalı şifre girdiniz!");
                     btn.disabled = false;
                     btn.innerText = "Giriş Yap";
                     return;
                 }
-
-                // Onay Kontrolü
-                if (userDoc.isApproved !== true) {
-                    alert("Hesabınız henüz yönetici tarafından onaylanmamış. Lütfen bekleyiniz.");
-                    btn.disabled = false;
-                    btn.innerText = "Giriş Yap";
-                    return;
-                }
-
-                // Her şey doğruysa Session oluştur ve Dashboard'a yönlendir
-                localStorage.setItem("userPhone", fullPhone);
-                localStorage.setItem("userRole", "resident");
-                window.location.href = "dashboard.html";
-
-            } catch (error) {
-                console.error("Giriş Hatası:", error);
-                alert("Giriş sırasında bir hata oluştu: " + error.message);
-                btn.disabled = false;
-                btn.innerText = "Giriş Yap";
+                throw createError;
             }
         }
+
+        // Bu noktada Firebase Authentication oturumu açık; profil bilgisini getir
+        const profileSnap = await db.collection("users").where("phone", "==", fullPhone).get();
+        if (profileSnap.empty) {
+            await firebase.auth().signOut();
+            alert("Kullanıcı kaydı bulunamadı.");
+            btn.disabled = false;
+            btn.innerText = "Giriş Yap";
+            return;
+        }
+        const userDoc = profileSnap.docs[0].data();
+
+        // Onay Kontrolü
+        if (userDoc.isApproved !== true) {
+            await firebase.auth().signOut();
+            alert("Hesabınız henüz yönetici tarafından onaylanmamış. Lütfen bekleyiniz.");
+            btn.disabled = false;
+            btn.innerText = "Giriş Yap";
+            return;
+        }
+
+        // Her şey doğruysa Session oluştur ve Dashboard'a yönlendir
+        localStorage.setItem("userPhone", fullPhone);
+        localStorage.setItem("userRole", "resident");
+        window.location.href = "dashboard.html";
+
+    } catch (error) {
+        console.error("Giriş Hatası:", error);
+        alert("Giriş sırasında bir hata oluştu: " + error.message);
+        btn.disabled = false;
+        btn.innerText = "Giriş Yap";
+    }
+}
 
         function handleForgotPassword() {
             const phone = prompt("Lütfen şifre sıfırlama talebi için kayıtlı cep telefonunuzu girin (5XX...):");

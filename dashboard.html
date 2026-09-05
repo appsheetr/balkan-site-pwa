@@ -236,8 +236,8 @@
                             </div>
 
                             <div class="mb-6">
-                                <label class="block text-xs font-medium text-slate-600 mb-1">Hesap Şifresi (Değişirse onaya düşer)</label>
-                                <input type="text" id="profilePassword" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Yeni Şifre (değiştirmek istemiyorsanız boş bırakın)</label>
+                                <input type="password" id="profilePassword" placeholder="••••••••" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
                             </div>
 
                             <button type="submit" id="profileSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark hover:brightness-110 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Bilgilerimi Güncelle</button>
@@ -399,26 +399,34 @@
             }
             window.location.href = "index.html";
         } else {
-            db.collection("users").where("phone", "==", sessionPhone).get().then(snapshot => {
-                if (snapshot.empty) {
+            firebase.auth().onAuthStateChanged(user => {
+                if (!user) {
+                    // Firebase oturumu yok (süresi dolmuş/kapatılmış) - tekrar giriş gerekiyor
                     logout();
                     return;
                 }
-                currentUserId = snapshot.docs[0].id;
-                currentUserData = snapshot.docs[0].data();
-                
-                document.getElementById('userGreeting').innerText = `${currentUserData.fullName} (${currentUserData.block} / D. ${currentUserData.apartment})`;
-                
-                document.getElementById('profilePhone').value = currentUserData.phone.replace('+90', '');
-                document.getElementById('profilePassword').value = currentUserData.password || '';
 
-                if(currentUserData.avatarUrl) {
-                    document.getElementById('headerAvatarSvg').classList.add('hidden');
-                    const headerImg = document.getElementById('headerAvatarImg');
-                    headerImg.src = currentUserData.avatarUrl;
-                    headerImg.classList.remove('hidden');
-                    document.getElementById('profileAvatarPreview').src = currentUserData.avatarUrl;
-                }
+                db.collection("users").where("phone", "==", sessionPhone).get().then(snapshot => {
+                    if (snapshot.empty) {
+                        logout();
+                        return;
+                    }
+                    currentUserId = snapshot.docs[0].id;
+                    currentUserData = snapshot.docs[0].data();
+
+                    document.getElementById('userGreeting').innerText = `${currentUserData.fullName} (${currentUserData.block} / D. ${currentUserData.apartment})`;
+
+                    document.getElementById('profilePhone').value = currentUserData.phone.replace('+90', '');
+                    document.getElementById('profilePassword').value = '';
+
+                    if(currentUserData.avatarUrl) {
+                        document.getElementById('headerAvatarSvg').classList.add('hidden');
+                        const headerImg = document.getElementById('headerAvatarImg');
+                        headerImg.src = currentUserData.avatarUrl;
+                        headerImg.classList.remove('hidden');
+                        document.getElementById('profileAvatarPreview').src = currentUserData.avatarUrl;
+                    }
+                });
             });
         }
 
@@ -772,21 +780,28 @@
             const fileInput = document.getElementById('profileAvatarFile');
             const btn = document.getElementById('profileSubmitBtn');
 
-            if(rawPhone.length !== 10 || !pass) {
-                alert("Lütfen telefon ve şifre alanlarını eksiksiz doldurun.");
+            if(rawPhone.length !== 10) {
+                alert("Lütfen telefon alanını eksiksiz doldurun.");
+                return;
+            }
+
+            if (pass && pass.length < 6) {
+                alert("Firebase güvenlik kuralları gereği şifreniz en az 6 karakter olmalıdır.");
                 return;
             }
 
             const fullPhone = "+90" + rawPhone;
+            const newPseudoEmail = rawPhone + "@balkan-resident.com";
+            const phoneChanged = (fullPhone !== currentUserData.phone);
+
             let updates = {};
             let needsReApproval = false;
 
-            if (fullPhone !== currentUserData.phone) {
+            if (phoneChanged) {
                 updates.phone = fullPhone;
                 needsReApproval = true;
             }
-            if (pass !== currentUserData.password) {
-                updates.password = pass;
+            if (pass) {
                 needsReApproval = true;
             }
 
@@ -794,6 +809,19 @@
             btn.innerText = "Bilgileriniz Kaydediliyor...";
 
             try {
+                const authUser = firebase.auth().currentUser;
+
+                // Telefon numarası, giriş için kullanılan Firebase Authentication
+                // e-postasının da güncellenmesini gerektirir.
+                if (phoneChanged) {
+                    await authUser.updateEmail(newPseudoEmail);
+                }
+                // Şifre artık doğrudan Firebase Authentication üzerinden değiştiriliyor,
+                // Firestore'a hiçbir zaman yazılmıyor.
+                if (pass) {
+                    await authUser.updatePassword(pass);
+                }
+
                 if (fileInput.files.length > 0) {
                     updates.avatarUrl = await uploadToCloudinary(fileInput.files[0]);
                 }
@@ -815,7 +843,13 @@
                 }
 
             } catch (error) {
-                alert("Güncelleme hatası: " + error.message);
+                if (error.code === 'auth/requires-recent-login') {
+                    alert("Güvenlik nedeniyle telefon veya şifre değiştirmeden önce çıkış yapıp tekrar giriş yapmanız gerekiyor.");
+                } else if (error.code === 'auth/email-already-in-use') {
+                    alert("Bu telefon numarası başka bir hesap tarafından zaten kullanılıyor.");
+                } else {
+                    alert("Güncelleme hatası: " + error.message);
+                }
                 btn.disabled = false;
                 btn.innerText = "Bilgilerimi Güncelle";
             }
@@ -826,6 +860,7 @@
         };
 
         function logout() {
+            firebase.auth().signOut();
             localStorage.removeItem('userPhone');
             localStorage.removeItem('userRole');
             window.location.href = "index.html";
