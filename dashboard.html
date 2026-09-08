@@ -57,7 +57,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <!-- DEEP LINKING -->
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -368,7 +368,26 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const messaging = firebase.messaging();
+const VAPID_KEY = "BEdEktzi7cZousxO9uNuqdH9w1NuOqXViMfjd5qwDwH8u-9gSI0iEnXOPuesUsGjBH6Jcy-v_abiu6SX4Fnm9qs";
 
+async function requestNotificationPermission() {
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+            if (token && currentUserId) {
+                // Token'i kullanıcının veritabanındaki kaydına ekle
+                await db.collection("users").doc(currentUserId).update({
+                    fcmToken: token
+                });
+                console.log("Bildirim tokeni başarıyla kaydedildi.");
+            }
+        }
+    } catch (error) {
+        console.error("Bildirim izni hatası:", error);
+    }
+}
         window.announcementsMap = {};
 
         const CLOUDINARY_CLOUD_NAME = "xtu9pdgv";
@@ -414,7 +433,7 @@
                     }
                     currentUserId = snapshot.docs[0].id;
                     currentUserData = snapshot.docs[0].data();
-
+                    requestNotificationPermission();
                     document.getElementById('userGreeting').innerText = `${currentUserData.fullName} (${currentUserData.block} / D. ${currentUserData.apartment})`;
 
                     document.getElementById('profilePhone').value = currentUserData.phone.replace('+90', '');
