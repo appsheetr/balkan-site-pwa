@@ -73,25 +73,33 @@
         
         <header class="bg-gradient-to-br from-brand-dark via-[#132B5C] to-brand text-white shadow-plate shrink-0">
             <div class="px-4 py-3.5 flex justify-between items-center max-w-4xl mx-auto">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md shrink-0 overflow-hidden">
                         <img id="headerAvatarImg" src="" class="hidden w-full h-full object-cover">
                         <svg id="headerAvatarSvg" class="w-5 h-5 text-brand" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <p class="text-[11px] text-blue-200/80 mb-0.5 truncate">Merhaba,</p>
-                        <h1 class="font-serif text-[15px] font-semibold leading-none tracking-tight truncate" id="userGreeting">Sakin</h1>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-serif text-[15px] font-semibold leading-none tracking-tight truncate" id="userGreeting">Sakin</h1>
+                            <!-- MASAÜSTÜ BİLDİRİM BUTONU (Sadece büyük ekranda görünür) -->
+                            <div class="hidden md:block shrink-0">
+                                <button id="btn-notify-desktop" class="hidden items-center gap-1.5 text-[10px] font-semibold bg-gold text-brand-dark px-2.5 py-1 rounded-lg shadow-sm hover:brightness-110 transition-all whitespace-nowrap">
+                                    <span class="text-xs">🔔</span> Bildirimleri Etkinleştir
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button onclick="logout()" class="shrink-0 text-[11px] font-semibold bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-2 rounded-xl transition">Çıkış</button>
+                <button onclick="logout()" class="shrink-0 ml-3 text-[11px] font-semibold bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-2 rounded-xl transition">Çıkış</button>
             </div>
             <div class="h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent"></div>
         </header>
 
         <main class="flex-1 overflow-y-auto hide-scrollbar p-4 lg:p-8">
-            <div class="max-w-4xl mx-auto space-y-7 pb-20">
+            <div class="max-w-4xl mx-auto space-y-7 pb-24">
 
                 <!-- SECTION: DASHBOARD OVERVIEW -->
                 <div id="view-dashboard" class="space-y-7 block">
@@ -251,8 +259,15 @@
     </div>
 
     <!-- RESPONSIVE NAVIGATION YÖNETİMİ -->
-    <nav class="fixed bottom-4 left-4 right-4 z-40 max-w-4xl mx-auto">
+    <nav class="fixed bottom-4 left-4 right-4 z-40 max-w-4xl mx-auto flex flex-col gap-2">
         
+        <!-- MOBİL BİLDİRİM BUTONU (Sadece mobilde İşlemler menüsünün üstünde görünür) -->
+        <div class="md:hidden">
+            <button id="btn-notify-mobile" class="hidden w-full bg-gold hover:brightness-110 text-brand-dark font-bold py-3.5 px-4 rounded-2xl shadow-nav items-center justify-center gap-2 transition-all">
+                <span class="text-lg">🔔</span> Bildirimleri Etkinleştir
+            </button>
+        </div>
+
         <!-- MOBİL GÖRÜNÜM: Yalnızca Geniş İşlemler Butonu -->
         <div class="md:hidden bg-brand-dark rounded-2xl shadow-nav p-1 border border-blue-900/30">
             <button onclick="openBottomSheet()" class="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-white hover:bg-white/10 transition-colors">
@@ -369,25 +384,26 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const messaging = firebase.messaging();
-const VAPID_KEY = "BEdEktzi7cZousxO9uNuqdH9w1NuOqXViMfjd5qwDwH8u-9gSI0iEnXOPuesUsGjBH6Jcy-v_abiu6SX4Fnm9qs";
+        const VAPID_KEY = "BEdEktzi7cZousxO9uNuqdH9w1NuOqXViMfjd5qwDwH8u-9gSI0iEnXOPuesUsGjBH6Jcy-v_abiu6SX4Fnm9qs";
 
-async function requestNotificationPermission() {
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            const token = await messaging.getToken({ vapidKey: VAPID_KEY });
-            if (token && currentUserId) {
-                // Token'i kullanıcının veritabanındaki kaydına ekle
-                await db.collection("users").doc(currentUserId).update({
-                    fcmToken: token
-                });
-                console.log("Bildirim tokeni başarıyla kaydedildi.");
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+                    if (token && currentUserId) {
+                        // Token'i kullanıcının veritabanındaki kaydına ekle
+                        await db.collection("users").doc(currentUserId).update({
+                            fcmToken: token
+                        });
+                        console.log("Bildirim tokeni başarıyla kaydedildi.");
+                    }
+                }
+            } catch (error) {
+                console.error("Bildirim izni hatası:", error);
             }
         }
-    } catch (error) {
-        console.error("Bildirim izni hatası:", error);
-    }
-}
+        
         window.announcementsMap = {};
 
         const CLOUDINARY_CLOUD_NAME = "xtu9pdgv";
@@ -421,7 +437,6 @@ async function requestNotificationPermission() {
         } else {
             firebase.auth().onAuthStateChanged(user => {
                 if (!user) {
-                    // Firebase oturumu yok (süresi dolmuş/kapatılmış) - tekrar giriş gerekiyor
                     logout();
                     return;
                 }
@@ -433,7 +448,12 @@ async function requestNotificationPermission() {
                     }
                     currentUserId = snapshot.docs[0].id;
                     currentUserData = snapshot.docs[0].data();
-                    requestNotificationPermission();
+                    
+                    // Bildirim butonlarının durumunu kontrol et
+                    if (typeof updateNotificationButtons === "function") {
+                        updateNotificationButtons();
+                    }
+
                     document.getElementById('userGreeting').innerText = `${currentUserData.fullName} (${currentUserData.block} / D. ${currentUserData.apartment})`;
 
                     document.getElementById('profilePhone').value = currentUserData.phone.replace('+90', '');
@@ -502,96 +522,91 @@ async function requestNotificationPermission() {
         }
 
         function loadDashboardData() {
-    db.collection("finance").get().then(snapshot => {
-        let total = 0;
-        snapshot.forEach(doc => {
-            const f = doc.data();
-            if(f.type === 'Gelir') total += f.amount;
-            if(f.type === 'Gider') total -= f.amount;
-        });
-        document.getElementById('dashBalance').innerText = total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
-    });
+            db.collection("finance").get().then(snapshot => {
+                let total = 0;
+                snapshot.forEach(doc => {
+                    const f = doc.data();
+                    if(f.type === 'Gelir') total += f.amount;
+                    if(f.type === 'Gider') total -= f.amount;
+                });
+                document.getElementById('dashBalance').innerText = total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+            });
 
-    db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
-        const container = document.getElementById('dashAnnounceList');
-        container.innerHTML = '';
-        
-        const today = new Date().toISOString().split('T')[0];
-        let activeCount = 0;
-        let displayCount = 0;
+            db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
+                const container = document.getElementById('dashAnnounceList');
+                container.innerHTML = '';
+                
+                const today = new Date().toISOString().split('T')[0];
+                let activeCount = 0;
+                let displayCount = 0;
 
-        snapshot.forEach(doc => {
-            const a = doc.data();
-            const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-            window.announcementsMap[doc.id] = { ...a, dateStr };
+                snapshot.forEach(doc => {
+                    const a = doc.data();
+                    const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
+                    window.announcementsMap[doc.id] = { ...a, dateStr };
 
-            // Bitiş tarihi varsa ve geçmişse pasif say, yoksa aktif say
-            const isActive = !a.endDate || a.endDate >= today;
+                    const isActive = !a.endDate || a.endDate >= today;
 
-            if (isActive) {
-                activeCount++;
-                if (displayCount < 2) { // Sadece aktif olanlardan son 2 tanesini göster
-                    container.innerHTML += `
-                        <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-gold cursor-pointer hover:shadow-plate transition-all group">
-                            <div class="flex justify-between items-start gap-2 mb-1">
-                                <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
-                                <span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full">Yeni</span>
-                            </div>
-                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">${a.content}</p>
-                        </div>`;
-                    displayCount++;
+                    if (isActive) {
+                        activeCount++;
+                        if (displayCount < 2) { 
+                            container.innerHTML += `
+                                <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-gold cursor-pointer hover:shadow-plate transition-all group">
+                                    <div class="flex justify-between items-start gap-2 mb-1">
+                                        <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
+                                        <span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full">Yeni</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">${a.content}</p>
+                                </div>`;
+                            displayCount++;
+                        }
+                    }
+                });
+
+                document.getElementById('dashAnnounceCount').innerText = activeCount;
+                if(displayCount === 0) {
+                    container.innerHTML = '<p class="text-xs text-slate-400">Şu an aktif bir duyuru bulunmuyor.</p>';
                 }
-            }
-        });
-
-        document.getElementById('dashAnnounceCount').innerText = activeCount;
-        if(displayCount === 0) {
-            container.innerHTML = '<p class="text-xs text-slate-400">Şu an aktif bir duyuru bulunmuyor.</p>';
+            });
         }
-    });
-}
 
         function loadFinanceData() {
-    const tableBody = document.getElementById('residentFinanceTable');
-    // Yeni sütun eklendiği için colspan="5" yapıldı
-    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Yükleniyor...</td></tr>';
+            const tableBody = document.getElementById('residentFinanceTable');
+            tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Yükleniyor...</td></tr>';
 
-    db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
-        tableBody.innerHTML = '';
-        if(snapshot.empty) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kayıt bulunmuyor.</td></tr>';
-            return;
+            db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
+                tableBody.innerHTML = '';
+                if(snapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kayıt bulunmuyor.</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const f = doc.data();
+                    const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
+                    const isIncome = f.type === 'Gelir';
+                    const receiptBtn = f.receiptUrl 
+                        ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold" title="Görüntüle">Gör</a>`
+                        : '<span class="text-slate-300">-</span>';
+
+                    const rowBg = isIncome 
+                        ? 'bg-green-50/50 hover:bg-green-50' 
+                        : 'bg-red-50/50 hover:bg-red-50';
+                    
+                    const typeBadge = `<span class="${isIncome ? 'text-green-700 bg-green-100/70 border-green-200' : 'text-red-700 bg-red-100/70 border-red-200'} px-2 py-0.5 rounded text-[10px] font-bold border">${f.type}</span>`;
+
+                    tableBody.innerHTML += `
+                        <tr class="${rowBg} border-b border-slate-100 last:border-b-0 transition-colors">
+                            <td class="px-3 py-3 text-slate-500">${dateStr}</td>
+                            <td class="px-3 py-3 font-medium text-ink">${f.description}</td>
+                            <td class="px-3 py-3">${typeBadge}</td>
+                            <td class="px-3 py-3 text-center">${receiptBtn}</td>
+                            <td class="px-3 py-3 text-right font-serif font-semibold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-600'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</td>
+                        </tr>`;
+                });
+            });
         }
 
-        snapshot.forEach(doc => {
-            const f = doc.data();
-            const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-            const isIncome = f.type === 'Gelir';
-            const receiptBtn = f.receiptUrl 
-                ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold" title="Görüntüle">Gör</a>`
-                : '<span class="text-slate-300">-</span>';
-
-            // Satır arkaplanını ve hover (üzerine gelince) renklerini türe göre belirliyoruz
-            const rowBg = isIncome 
-                ? 'bg-green-50/50 hover:bg-green-50' 
-                : 'bg-red-50/50 hover:bg-red-50';
-            
-            // Türü daha şık göstermek için küçük bir etiket (badge) oluşturuyoruz
-            const typeBadge = `<span class="${isIncome ? 'text-green-700 bg-green-100/70 border-green-200' : 'text-red-700 bg-red-100/70 border-red-200'} px-2 py-0.5 rounded text-[10px] font-bold border">${f.type}</span>`;
-
-            tableBody.innerHTML += `
-                <tr class="${rowBg} border-b border-slate-100 last:border-b-0 transition-colors">
-                    <td class="px-3 py-3 text-slate-500">${dateStr}</td>
-                    <td class="px-3 py-3 font-medium text-ink">${f.description}</td>
-                    <td class="px-3 py-3">${typeBadge}</td>
-                    <td class="px-3 py-3 text-center">${receiptBtn}</td>
-                    <td class="px-3 py-3 text-right font-serif font-semibold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-600'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</td>
-                </tr>`;
-        });
-    });
-}
-
-        // --- YÖNETİM KARARLARI (SAKİN GÖRÜNÜMÜ) ---
         function loadDecisionsData() {
             const container = document.getElementById('residentDecisionsList');
             container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
@@ -636,56 +651,56 @@ async function requestNotificationPermission() {
         }
 
         function loadAnnouncementsData() {
-    const container = document.getElementById('fullAnnounceList');
-    container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
+            const container = document.getElementById('fullAnnounceList');
+            container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
 
-    db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
-        container.innerHTML = '';
-        if(snapshot.empty) {
-            container.innerHTML = '<p class="text-xs text-slate-400">Yayınlanmış duyuru bulunmuyor.</p>';
-            return;
+            db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-xs text-slate-400">Yayınlanmış duyuru bulunmuyor.</p>';
+                    return;
+                }
+
+                const today = new Date().toISOString().split('T')[0];
+
+                snapshot.forEach(doc => {
+                    const a = doc.data();
+                    const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
+                    window.announcementsMap[doc.id] = { ...a, dateStr };
+
+                    const isActive = !a.endDate || a.endDate >= today;
+                    
+                    let statusBadge = isActive 
+                        ? `<span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full border border-blue-100">Aktif</span>` 
+                        : `<span class="shrink-0 text-[10px] text-slate-400 bg-slate-100 font-medium px-2 py-0.5 rounded-full border border-slate-200">Süresi Doldu</span>`;
+
+                    let mediaIndicator = '';
+                    if(a.imageUrl) {
+                        mediaIndicator = `<div class="mt-3 text-[10px] font-semibold text-brand flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Medyayı Görüntüle</div>`;
+                    }
+
+                    container.innerHTML += `
+                        <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] ${isActive ? 'border-l-gold' : 'border-l-slate-300 opacity-75'} cursor-pointer hover:shadow-plate transition-all group">
+                            <div class="flex justify-between items-start gap-2 mb-1">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
+                                    ${statusBadge}
+                                </div>
+                                <span class="shrink-0 text-[10px] text-slate-400 bg-white px-2 py-0.5 rounded-full">${dateStr}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1">${a.content}</p>
+                            ${mediaIndicator}
+                        </div>`;
+                });
+
+                const targetId = localStorage.getItem('targetAnnounceId');
+                if (targetId && window.announcementsMap[targetId]) {
+                    switchTab('announcements');
+                    setTimeout(() => { openAnnouncementModal(targetId); }, 300);
+                    localStorage.removeItem('targetAnnounceId');
+                }
+            });
         }
-
-        const today = new Date().toISOString().split('T')[0];
-
-        snapshot.forEach(doc => {
-            const a = doc.data();
-            const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-            window.announcementsMap[doc.id] = { ...a, dateStr };
-
-            const isActive = !a.endDate || a.endDate >= today;
-            
-            let statusBadge = isActive 
-                ? `<span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full border border-blue-100">Aktif</span>` 
-                : `<span class="shrink-0 text-[10px] text-slate-400 bg-slate-100 font-medium px-2 py-0.5 rounded-full border border-slate-200">Süresi Doldu</span>`;
-
-            let mediaIndicator = '';
-            if(a.imageUrl) {
-                mediaIndicator = `<div class="mt-3 text-[10px] font-semibold text-brand flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Medyayı Görüntüle</div>`;
-            }
-
-            container.innerHTML += `
-                <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] ${isActive ? 'border-l-gold' : 'border-l-slate-300 opacity-75'} cursor-pointer hover:shadow-plate transition-all group">
-                    <div class="flex justify-between items-start gap-2 mb-1">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>
-                            ${statusBadge}
-                        </div>
-                        <span class="shrink-0 text-[10px] text-slate-400 bg-white px-2 py-0.5 rounded-full">${dateStr}</span>
-                    </div>
-                    <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1">${a.content}</p>
-                    ${mediaIndicator}
-                </div>`;
-        });
-
-        const targetId = localStorage.getItem('targetAnnounceId');
-        if (targetId && window.announcementsMap[targetId]) {
-            switchTab('announcements');
-            setTimeout(() => { openAnnouncementModal(targetId); }, 300);
-            localStorage.removeItem('targetAnnounceId');
-        }
-    });
-}
 
         function openAnnouncementModal(id) {
             const a = window.announcementsMap[id];
@@ -865,13 +880,9 @@ async function requestNotificationPermission() {
             try {
                 const authUser = firebase.auth().currentUser;
 
-                // Telefon numarası, giriş için kullanılan Firebase Authentication
-                // e-postasının da güncellenmesini gerektirir.
                 if (phoneChanged) {
                     await authUser.updateEmail(newPseudoEmail);
                 }
-                // Şifre artık doğrudan Firebase Authentication üzerinden değiştiriliyor,
-                // Firestore'a hiçbir zaman yazılmıyor.
                 if (pass) {
                     await authUser.updatePassword(pass);
                 }
@@ -919,6 +930,48 @@ async function requestNotificationPermission() {
             localStorage.removeItem('userRole');
             window.location.href = "index.html";
         }
+
+        // BİLDİRİM İZNİ VE BUTON KONTROLLERİ EKLENDİ
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnDesktop = document.getElementById('btn-notify-desktop');
+            const btnMobile = document.getElementById('btn-notify-mobile');
+
+            // Global olarak kullanılabilmesi için window objesine atıyoruz
+            window.updateNotificationButtons = function() {
+                if ("Notification" in window && Notification.permission === "default") {
+                    if (btnDesktop) {
+                        btnDesktop.classList.remove('hidden');
+                        btnDesktop.classList.add('inline-flex');
+                    }
+                    if (btnMobile) {
+                        btnMobile.classList.remove('hidden');
+                        btnMobile.classList.add('flex');
+                    }
+                } else {
+                    if (btnDesktop) {
+                        btnDesktop.classList.add('hidden');
+                        btnDesktop.classList.remove('inline-flex');
+                    }
+                    if (btnMobile) {
+                        btnMobile.classList.add('hidden');
+                        btnMobile.classList.remove('flex');
+                    }
+                }
+            };
+
+            async function handleNotificationRequest() {
+                if (typeof requestNotificationPermission === "function") {
+                    await requestNotificationPermission();
+                }
+                window.updateNotificationButtons();
+            }
+
+            if (btnDesktop) btnDesktop.addEventListener('click', handleNotificationRequest);
+            if (btnMobile) btnMobile.addEventListener('click', handleNotificationRequest);
+
+            // Sayfa yüklendiğinde buton durumunu ayarla
+            window.updateNotificationButtons();
+        });
     </script>
 </body>
 </html>
