@@ -60,23 +60,34 @@ exports.onManualNotification = functions.region('europe-west3').firestore
         await batch.commit();
 
         // Telefonlara Push Bildirim (FCM) gönder
-        if (tokens.length > 0) {
-            const payload = {
-                notification: {
-                    title: notificationTitle,
-                    body: notificationBody,
-                }
-            };
-            
-            try {
-                const response = await admin.messaging().sendToDevice(tokens, payload);
-                console.log("Push bildirimler başarıyla gönderildi:", response.successCount);
-            } catch (error) {
-                console.error("Push bildirim hatası:", error);
-            }
-        } else {
-            console.log("Gönderilecek FCM token bulunamadı.");
+        // FCM Bildirim Paketi (iOS APNs Uyumluluğu İçin)
+if (tokens.length > 0) {
+    const payload = {
+        notification: {
+            title: notificationTitle,
+            body: notificationBody,
+            sound: "default"
+        },
+        data: {
+            title: notificationTitle,
+            body: notificationBody,
+            click_action: "FLUTTER_NOTIFICATION_CLICK"
         }
+    };
+    
+    // iOS için yüksek öncelikli bildirim ayarı
+    const options = {
+        priority: "high",
+        timeToLive: 60 * 60 * 24
+    };
+
+    try {
+        const response = await admin.messaging().sendToDevice(tokens, payload, options);
+        console.log("Push bildirimler başarıyla gönderildi:", response.successCount);
+    } catch (error) {
+        console.error("Push bildirim hatası:", error);
+    }
+}
         
         return null;
     });
