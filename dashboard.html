@@ -1049,38 +1049,34 @@ async function requestNotificationPermission() {
     }
     
     try {
-        // Apple Kuralı: Butona basıldığı an izin istenir
         const permission = await Notification.requestPermission();
         
         if (permission === 'granted') {
             document.getElementById('notifBanner').classList.add('hidden');
             
-            // Service Worker'ın hazır olduğundan emin ol
-            const swReg = await navigator.serviceWorker.ready;
+            // ÇÖZÜLEN KISIM: Arka plan işçisini açıkça kaydedip başlatıyoruz
+            const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
             
-            // Firebase'den token talep et (VAPID Key kullanarak)
             const token = await messaging.getToken({ 
                 vapidKey: VAPID_KEY, 
                 serviceWorkerRegistration: swReg 
             });
             
             if (token) {
-                // Token'ı kesin olarak Firestore'a kaydet
                 await db.collection("users").doc(currentUserId).update({
                     fcmToken: token
                 });
                 console.log("FCM Token başarıyla veritabanına kaydedildi!");
                 alert("Harika! Cihazınız bildirimlere açıldı.");
             } else {
-                console.log("Token üretilemedi, cihaz desteklemiyor olabilir.");
+                alert("Token üretilemedi, cihaz desteklemiyor olabilir.");
             }
         } else {
-            console.log("Kullanıcı bildirim iznini reddetti.");
             alert("Bildirim almak için tarayıcı ayarlarından izin vermeniz gerekmektedir.");
         }
     } catch (error) {
         console.error("Token oluşturulurken hata yaşandı:", error);
-        alert("Apple cihazlarında bildirim almak için uygulamayı 'Ana Ekrana Ekle'meniz gerekmektedir.");
+        alert("Hata: Bildirim servisine bağlanılamadı.");
     }
 }
 
