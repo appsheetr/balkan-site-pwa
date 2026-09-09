@@ -487,6 +487,7 @@ async function requestNotificationPermission() {
                     currentUserId = snapshot.docs[0].id;
                     currentUserData = snapshot.docs[0].data();
                     startNotificationListener(); // Bildirimleri dinlemeye başla
+                    requestAndSaveFCMToken();
                     if (Notification.permission === 'granted') {
                         requestNotificationPermission(); // zaten izinli, token'ı sessizce tazele
                     } else if (Notification.permission === 'default') {
@@ -972,6 +973,9 @@ async function requestNotificationPermission() {
         };
 
         function logout() {
+            if (typeof notifUnsubscribe !== 'undefined' && notifUnsubscribe) {
+                notifUnsubscribe();
+            }
             firebase.auth().signOut();
             localStorage.removeItem('userPhone');
             localStorage.removeItem('userRole');
@@ -1060,6 +1064,33 @@ function startNotificationListener() {
                 countText.innerText = `Tümü Okundu`;
             }
         });
+}
+
+// Bildirim izni al ve Token'ı veritabanına kaydet
+async function requestAndSaveFCMToken() {
+    if (!currentUserId) return;
+    
+    try {
+        // 1. Kullanıcıdan bildirim izni iste
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+            // 2. İzin verildiyse cihaz için Firebase Token üret
+            const token = await firebase.messaging().getToken();
+            
+            if (token) {
+                // 3. Üretilen Token'ı veritabanındaki kullanıcı profiline kaydet
+                await db.collection("users").doc(currentUserId).update({
+                    fcmToken: token
+                });
+                console.log("FCM Token başarıyla veritabanına kaydedildi!");
+            }
+        } else {
+            console.log("Kullanıcı bildirim iznini reddetti.");
+        }
+    } catch (error) {
+        console.error("Token oluşturulurken hata yaşandı:", error);
+    }
 }
 
 async function markNotificationAsRead(notifId) {
