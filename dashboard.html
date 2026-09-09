@@ -90,6 +90,11 @@
             <div class="h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent"></div>
         </header>
 
+        <div id="notifBanner" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between gap-3">
+            <p class="text-xs text-amber-800 font-medium">🔔 Bildirim alabilmek için izin vermeniz gerekiyor.</p>
+            <button onclick="requestNotificationPermission()" class="shrink-0 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg transition">Bildirimleri Aç</button>
+        </div>
+
         <main class="flex-1 overflow-y-auto hide-scrollbar p-4 lg:p-8">
             <div class="max-w-4xl mx-auto space-y-7 pb-20">
 
@@ -374,6 +379,7 @@ const VAPID_KEY = "BEdEktzi7cZousxO9uNuqdH9w1NuOqXViMfjd5qwDwH8u-9gSI0iEnXOPuesU
 async function requestNotificationPermission() {
     try {
         const permission = await Notification.requestPermission();
+        document.getElementById('notifBanner').classList.add('hidden');
         if (permission === 'granted') {
             const swReg = await navigator.serviceWorker.ready; // app.js tarafından kaydedilen /sw.js
             const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
@@ -440,7 +446,11 @@ async function requestNotificationPermission() {
                     }
                     currentUserId = snapshot.docs[0].id;
                     currentUserData = snapshot.docs[0].data();
-                    requestNotificationPermission();
+                    if (Notification.permission === 'granted') {
+                        requestNotificationPermission(); // zaten izinli, token'ı sessizce tazele
+                    } else if (Notification.permission === 'default') {
+                        document.getElementById('notifBanner').classList.remove('hidden');
+                    }
                     document.getElementById('userGreeting').innerText = `${currentUserData.fullName} (${currentUserData.block} / D. ${currentUserData.apartment})`;
 
                     document.getElementById('profilePhone').value = currentUserData.phone.replace('+90', '');
