@@ -416,31 +416,7 @@
         const messaging = firebase.messaging();
 const VAPID_KEY = "BEdEktzi7cZousxO9uNuqdH9w1NuOqXViMfjd5qwDwH8u-9gSI0iEnXOPuesUsGjBH6Jcy-v_abiu6SX4Fnm9qs";
 
-async function requestNotificationPermission() {
-    try {
-        const permission = await Notification.requestPermission();
-        document.getElementById('notifBanner').classList.add('hidden');
-        if (permission === 'granted') {
-            const swReg = await navigator.serviceWorker.ready; // app.js tarafından kaydedilen /sw.js
-            const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-            if (token && currentUserId) {
-                // Token'i kullanıcının veritabanındaki kaydına ekle
-                await db.collection("users").doc(currentUserId).update({
-                    fcmToken: token
-                });
-                console.log("Bildirim tokeni başarıyla kaydedildi.");
-               
-            } else {
-                alert("GEÇİCİ DEBUG: Token veya kullanıcı ID yok.\ntoken=" + token + "\ncurrentUserId=" + currentUserId);
-            }
-        } else {
-            
-        }
-    } catch (error) {
-        console.error("Bildirim izni hatası:", error);
-        alert("GEÇİCİ DEBUG - HATA:\n" + error.code + "\n" + error.message);
-    }
-}
+
         window.announcementsMap = {};
 
         const CLOUDINARY_CLOUD_NAME = "xtu9pdgv";
@@ -487,7 +463,7 @@ async function requestNotificationPermission() {
                     currentUserId = snapshot.docs[0].id;
                     currentUserData = snapshot.docs[0].data();
                     startNotificationListener(); // Bildirimleri dinlemeye başla
-                    requestAndSaveFCMToken();
+                    
                     if (Notification.permission === 'granted') {
                         requestNotificationPermission(); // zaten izinli, token'ı sessizce tazele
                     } else if (Notification.permission === 'default') {
@@ -1066,30 +1042,45 @@ function startNotificationListener() {
         });
 }
 
-// Bildirim izni al ve Token'ı veritabanına kaydet
-async function requestAndSaveFCMToken() {
-    if (!currentUserId) return;
+async function requestNotificationPermission() {
+    if (!currentUserId) {
+        alert("Lütfen önce giriş işleminin tamamlanmasını bekleyin.");
+        return;
+    }
     
     try {
-        // 1. Kullanıcıdan bildirim izni iste
+        // Apple Kuralı: Butona basıldığı an izin istenir
         const permission = await Notification.requestPermission();
         
         if (permission === 'granted') {
-            // 2. İzin verildiyse cihaz için Firebase Token üret
-            const token = await firebase.messaging().getToken();
+            document.getElementById('notifBanner').classList.add('hidden');
+            
+            // Service Worker'ın hazır olduğundan emin ol
+            const swReg = await navigator.serviceWorker.ready;
+            
+            // Firebase'den token talep et (VAPID Key kullanarak)
+            const token = await messaging.getToken({ 
+                vapidKey: VAPID_KEY, 
+                serviceWorkerRegistration: swReg 
+            });
             
             if (token) {
-                // 3. Üretilen Token'ı veritabanındaki kullanıcı profiline kaydet
+                // Token'ı kesin olarak Firestore'a kaydet
                 await db.collection("users").doc(currentUserId).update({
                     fcmToken: token
                 });
                 console.log("FCM Token başarıyla veritabanına kaydedildi!");
+                alert("Harika! Cihazınız bildirimlere açıldı.");
+            } else {
+                console.log("Token üretilemedi, cihaz desteklemiyor olabilir.");
             }
         } else {
             console.log("Kullanıcı bildirim iznini reddetti.");
+            alert("Bildirim almak için tarayıcı ayarlarından izin vermeniz gerekmektedir.");
         }
     } catch (error) {
         console.error("Token oluşturulurken hata yaşandı:", error);
+        alert("Apple cihazlarında bildirim almak için uygulamayı 'Ana Ekrana Ekle'meniz gerekmektedir.");
     }
 }
 
