@@ -1054,8 +1054,9 @@ async function requestNotificationPermission() {
         if (permission === 'granted') {
             document.getElementById('notifBanner').classList.add('hidden');
             
-            // ÇÖZÜLEN KISIM: Arka plan işçisini açıkça kaydedip başlatıyoruz
-            const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            // Service Worker kaydını mevcut kapsam üzerinden güvenli şekilde yapıyoruz
+            const swReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+            await navigator.serviceWorker.ready;
             
             const token = await messaging.getToken({ 
                 vapidKey: VAPID_KEY, 
@@ -1066,7 +1067,6 @@ async function requestNotificationPermission() {
                 await db.collection("users").doc(currentUserId).update({
                     fcmToken: token
                 });
-                console.log("FCM Token başarıyla veritabanına kaydedildi!");
                 alert("Harika! Cihazınız bildirimlere açıldı.");
             } else {
                 alert("Token üretilemedi, cihaz desteklemiyor olabilir.");
@@ -1076,7 +1076,8 @@ async function requestNotificationPermission() {
         }
     } catch (error) {
         console.error("Token oluşturulurken hata yaşandı:", error);
-        alert("Hata: Bildirim servisine bağlanılamadı.");
+        // Gerçek teknik hatayı ekranda görmek için mesajı detaylandıralım:
+        alert("Teknik Hata: " + (error.message || error.code || error));
     }
 }
 
