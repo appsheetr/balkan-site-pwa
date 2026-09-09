@@ -1,7 +1,6 @@
 importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
 
-// Mevcut Firebase ayarlarımız
 firebase.initializeApp({
     apiKey: "AIzaSyCXF8oiGvPCvUCwq1RVKHsttIsOAnOb4kM",
     authDomain: "balkansitepwa.firebaseapp.com",
@@ -13,15 +12,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Uygulama kapalıyken veya arka plandayken bildirim geldiğinde çalışacak kod
+// iOS Arka Plan ve Kilit Ekranı Tetikleyicisi
 messaging.onBackgroundMessage(function(payload) {
-  console.log('Arka plan bildirimi alındı: ', payload);
-  
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: 'https://cdn-icons-png.flaticon.com/512/1018/1018525.png'
-  };
+    console.log('Arka plan bildirimi yakalandı:', payload);
+    
+    const title = payload.notification?.title || payload.data?.title || 'Balkan Yapı';
+    const body = payload.notification?.body || payload.data?.body || 'Yeni bir bildiriminiz var.';
+    
+    const options = {
+        body: body,
+        icon: 'https://cdn-icons-png.flaticon.com/512/1018/1018525.png',
+        badge: 'https://cdn-icons-png.flaticon.com/512/1018/1018525.png',
+        data: payload.data || {}
+    };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+    return self.registration.showNotification(title, options);
 });
