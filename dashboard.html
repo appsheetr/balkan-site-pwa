@@ -429,12 +429,12 @@ async function requestNotificationPermission() {
                     fcmToken: token
                 });
                 console.log("Bildirim tokeni başarıyla kaydedildi.");
-                alert("GEÇİCİ DEBUG: Token başarıyla kaydedildi ✅\n" + token.substring(0, 25) + "...");
+               
             } else {
                 alert("GEÇİCİ DEBUG: Token veya kullanıcı ID yok.\ntoken=" + token + "\ncurrentUserId=" + currentUserId);
             }
         } else {
-            alert("GEÇİCİ DEBUG: İzin durumu = " + permission);
+            
         }
     } catch (error) {
         console.error("Bildirim izni hatası:", error);
