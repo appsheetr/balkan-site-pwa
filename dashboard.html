@@ -85,8 +85,19 @@
                         <h1 class="font-serif text-[15px] font-semibold leading-none tracking-tight truncate" id="userGreeting">Sakin</h1>
                     </div>
                 </div>
-                <button onclick="logout()" class="shrink-0 text-[11px] font-semibold bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-2 rounded-xl transition">Çıkış</button>
-            </div>
+                <!-- HEADER SAĞ KISIM (Çan İkonu ve Çıkış Butonu) -->
+<div class="flex items-center gap-2 shrink-0 ml-3">
+    <!-- Bildirim Çanı -->
+    <button onclick="toggleNotificationPanel()" class="relative p-2 text-white hover:text-gold bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+        </svg>
+        <!-- Okunmamış Bildirim Rozeti (Badge) -->
+        <span id="notifBadge" class="absolute -top-1 -right-1 hidden items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 border border-brand-dark rounded-full shadow-sm">0</span>
+    </button>
+    
+    <button onclick="logout()" class="text-[11px] font-semibold bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-2 rounded-xl transition">Çıkış</button>
+</div>
             <div class="h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent"></div>
         </header>
 
@@ -361,6 +372,35 @@
         </div>
     </div>
 
+    <!-- BİLDİRİM MERKEZİ YAN PANELİ (DRAWER) -->
+<div id="notificationOverlay" class="fixed inset-0 bg-ink/50 backdrop-blur-sm z-[120] hidden opacity-0 transition-opacity duration-300" onclick="toggleNotificationPanel()"></div>
+<div id="notificationPanel" class="fixed top-0 right-0 h-full w-full max-w-[320px] bg-[#F5F7FB] shadow-2xl z-[130] transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Panel Başlığı -->
+    <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-white shadow-sm">
+        <div class="flex items-center gap-2">
+            <h3 class="font-serif text-lg font-bold text-ink">Bildirimler</h3>
+            <span id="notifCountText" class="text-[10px] font-semibold text-brand bg-brand-light px-2 py-0.5 rounded-full border border-blue-100">0 Yeni</span>
+        </div>
+        <button onclick="toggleNotificationPanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-500 hover:text-brand hover:bg-brand-light transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+    
+    <!-- Toplu Aksiyon Çubuğu -->
+    <div class="px-4 py-2 border-b border-slate-200 flex justify-end bg-slate-50">
+        <button onclick="deleteAllNotifications()" class="text-[11px] font-semibold text-red-500 hover:text-red-700 bg-white hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-red-200 transition flex items-center gap-1.5 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            Tümünü Sil
+        </button>
+    </div>
+
+    <!-- Bildirim Listesi -->
+    <div id="notificationList" class="flex-1 overflow-y-auto p-3 space-y-2 hide-scrollbar">
+        <!-- Bildirimler buraya dinamik eklenecek -->
+        <div class="p-8 text-center text-slate-400 text-sm">Yükleniyor...</div>
+    </div>
+</div>
+
     <!-- Application Logic Script -->
     <script>
         const firebaseConfig = {
@@ -446,6 +486,7 @@ async function requestNotificationPermission() {
                     }
                     currentUserId = snapshot.docs[0].id;
                     currentUserData = snapshot.docs[0].data();
+                    startNotificationListener(); // Bildirimleri dinlemeye başla
                     if (Notification.permission === 'granted') {
                         requestNotificationPermission(); // zaten izinli, token'ı sessizce tazele
                     } else if (Notification.permission === 'default') {
@@ -936,6 +977,118 @@ async function requestNotificationPermission() {
             localStorage.removeItem('userRole');
             window.location.href = "index.html";
         }
+
+        let notifUnsubscribe = null;
+
+// Paneli Aç/Kapat
+function toggleNotificationPanel() {
+    const panel = document.getElementById('notificationPanel');
+    const overlay = document.getElementById('notificationOverlay');
+    
+    if (panel.classList.contains('translate-x-full')) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+        panel.classList.remove('translate-x-full');
+    } else {
+        overlay.classList.add('opacity-0');
+        panel.classList.add('translate-x-full');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+}
+
+// Canlı Bildirim Dinleyicisi
+function startNotificationListener() {
+    if (!currentUserId) return;
+    
+    if (notifUnsubscribe) notifUnsubscribe();
+
+    notifUnsubscribe = db.collection("users").doc(currentUserId).collection("notifications")
+        .orderBy("createdAt", "desc")
+        .limit(30)
+        .onSnapshot(snapshot => {
+            const listContainer = document.getElementById('notificationList');
+            const badge = document.getElementById('notifBadge');
+            const countText = document.getElementById('notifCountText');
+            
+            if (snapshot.empty) {
+                listContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 text-center h-full opacity-60">
+                        <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <p class="text-sm font-medium text-slate-500">Şu an yeni bildiriminiz yok.</p>
+                    </div>`;
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+                countText.innerText = '0 Yeni';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            let unreadCount = 0;
+
+            snapshot.forEach(doc => {
+                const notif = doc.data();
+                if (!notif.isRead) unreadCount++;
+
+                const isReadClass = notif.isRead ? 'opacity-60 bg-transparent border-transparent' : 'bg-white border-brand/20 shadow-sm border-l-[3px] border-l-brand';
+                const timeStr = notif.createdAt ? new Date(notif.createdAt.toDate()).toLocaleDateString('tr-TR', { hour: '2-digit', minute:'2-digit'}) : 'Az önce';
+
+                listContainer.innerHTML += `
+                    <div class="relative flex items-start gap-3 p-3 rounded-xl border border-slate-100 transition-all ${isReadClass}">
+                        <div class="flex-1 min-w-0">
+                            <h5 class="text-sm font-bold text-ink leading-tight mb-1">${notif.title}</h5>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">${notif.body}</p>
+                            <span class="text-[9px] font-semibold text-slate-400 mt-2 block uppercase tracking-wider">${timeStr}</span>
+                        </div>
+                        ${!notif.isRead ? `
+                        <button onclick="markNotificationAsRead('${doc.id}')" class="shrink-0 p-1.5 text-brand hover:bg-brand-light rounded-lg transition" title="Okundu işaretle">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            // Rozet sayısını güncelle
+            if (unreadCount > 0) {
+                badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+                countText.innerText = `${unreadCount} Yeni`;
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+                countText.innerText = `Tümü Okundu`;
+            }
+        });
+}
+
+async function markNotificationAsRead(notifId) {
+    if (!currentUserId) return;
+    try {
+        await db.collection("users").doc(currentUserId).collection("notifications").doc(notifId).update({
+            isRead: true
+        });
+    } catch (error) {
+        console.error("Okundu işaretleme hatası:", error);
+    }
+}
+
+async function deleteAllNotifications() {
+    if (!currentUserId) return;
+    if(!confirm("Tüm bildirimleri silmek istediğinize emin misiniz?")) return;
+    
+    try {
+        const snapshot = await db.collection("users").doc(currentUserId).collection("notifications").get();
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+    } catch (error) {
+        console.error("Toplu silme hatası:", error);
+        alert("Silme işlemi sırasında hata oluştu.");
+    }
+}
     </script>
 </body>
 </html>
