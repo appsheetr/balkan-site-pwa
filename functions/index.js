@@ -29,11 +29,14 @@ exports.onManualNotification = functions.region('europe-west3').firestore
     .onCreate(async (snap, context) => {
         const data = snap.data();
         
-        // 1. Tüm onaylı kullanıcıları getir
+        // Gelen verinin alan adını garantiye alıyoruz (Hata vermemesi için)
+        const notificationTitle = data.title || "Yeni Bildirim";
+        const notificationBody = data.message || data.content || data.body || "Mesaj detayı bulunamadı.";
+        
         const usersSnapshot = await admin.firestore().collection('users').where('isApproved', '==', true).get();
         
         const tokens = [];
-        const batch = admin.firestore().batch(); // Çoklu yazma işlemi için batch oluştur
+        const batch = admin.firestore().batch();
 
         usersSnapshot.forEach(doc => {
             const userData = doc.data();
@@ -43,31 +46,31 @@ exports.onManualNotification = functions.region('europe-west3').firestore
                 tokens.push(userData.fcmToken);
             }
 
-            // YENİ: Uygulama İçi Bildirim Merkezine (Zil İkonuna) Yazma İşlemi
+            // Uygulama İçi Bildirim Merkezine Yazma İşlemi
             const userNotifRef = admin.firestore().collection('users').doc(doc.id).collection('notifications').doc();
             batch.set(userNotifRef, {
-                title: data.title,
-                body: data.message, // Admin panelinden gelen 'message' alanı
+                title: notificationTitle,
+                body: notificationBody,
                 isRead: false,
                 createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
         });
 
-        // 2. Zil ikonu için veritabanına toplu kayıt yap
+        // Zil ikonu için veritabanına kaydı tamamla
         await batch.commit();
 
-        // 3. Telefonlara Push Bildirim (FCM) gönder
+        // Telefonlara Push Bildirim (FCM) gönder
         if (tokens.length > 0) {
             const payload = {
                 notification: {
-                    title: data.title,
-                    body: data.message,
+                    title: notificationTitle,
+                    body: notificationBody,
                 }
             };
             
             try {
                 const response = await admin.messaging().sendToDevice(tokens, payload);
-                console.log("Manuel Push Bildirimler başarıyla gönderildi:", response.successCount);
+                console.log("Push bildirimler başarıyla gönderildi:", response.successCount);
             } catch (error) {
                 console.error("Push bildirim hatası:", error);
             }
@@ -98,3 +101,5 @@ exports.onNewFinance = functions.region("europe-west3").firestore.document("fina
     const data = snap.data();
     return sendNotificationToAll("💰 Yeni Kasa Hareketi", `${data.type} işlendi: ${data.amount} ₺ (${data.description})`);
   });
+
+  // test
