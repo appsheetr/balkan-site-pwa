@@ -17,6 +17,20 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- YÜZEYDE (FLOATING) ASILI KALAN AİDAT UYARISI (TÜM SAYFALARDA GÖRÜNÜR) -->
+    <div id="unpaidDuesBanner" class="fixed bottom-24 right-4 md:right-8 z-[150] hidden bg-white border border-red-100 border-l-[4px] border-l-red-500 p-4 rounded-2xl shadow-[0_10px_40px_-10px_rgba(239,68,68,0.4)] flex items-center justify-between gap-4 transform transition-all duration-500 scale-95 opacity-0 w-[calc(100%-2rem)] sm:w-auto max-w-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-red-50 text-red-600 rounded-full flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-0.5">Aidat Borcunuz Var</p>
+                <p class="text-sm font-bold text-ink"><span id="totalUnpaidAmount">0,00</span> ₺</p>
+            </div>
+        </div>
+        <button onclick="switchTab('finance')" class="text-xs font-bold bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl transition shadow-md shrink-0">İncele</button>
+    </div>
     <script>
         tailwind.config = {
             theme: {
@@ -135,19 +149,7 @@
                         </div>
                     </div>
 
-                    <!-- YÜZEYDE (FLOATING) ASILI KALAN AİDAT UYARISI -->
-                    <div id="unpaidDuesBanner" class="fixed bottom-24 right-4 md:right-8 z-50 hidden bg-white border border-red-100 border-l-[4px] border-l-red-500 p-4 rounded-2xl shadow-[0_10px_40px_-10px_rgba(239,68,68,0.4)] flex items-center justify-between gap-4 transform transition-all duration-500 scale-95 opacity-0 w-[calc(100%-2rem)] sm:w-auto max-w-sm">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-red-50 text-red-600 rounded-full flex items-center justify-center shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-0.5">Aidat Borcunuz Var</p>
-                                <p class="text-sm font-bold text-ink"><span id="totalUnpaidAmount">0,00</span> ₺</p>
-                            </div>
-                        </div>
-                        <button onclick="switchTab('finance')" class="text-xs font-bold bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl transition shadow-md shrink-0">İncele</button>
-                    </div>
+                     
 
                     <div>
                         <div class="flex justify-between items-end mb-3">
@@ -1084,5 +1086,6 @@
             } catch (error) { alert("Silme işlemi sırasında hata oluştu."); }
         }
     </script>
+    
 </body>
 </html>
