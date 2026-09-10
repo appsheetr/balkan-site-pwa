@@ -423,23 +423,34 @@
         const CLOUDINARY_UPLOAD_PRESET = "balkan_site_unsigned";
         const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
-        // PULL-TO-REFRESH
-        // GELİŞMİŞ PULL-TO-REFRESH (LASTİK EFEKTİ) VE YÜKLEME
-        const appWrapper = document.querySelector('.flex-1.flex.flex-col');
+        // GELİŞMİŞ PULL-TO-REFRESH (SADECE İÇERİK ESNER, HEADER SABİT KALIR)
         const scrollArea = document.querySelector('main');
         let touchStartY = 0;
         let pullDistance = 0;
         let isPulling = false;
 
-        // Uygulama çerçevesini z-10 yapıp, arkaya (z-0) yenileme yazısı ekleyeceğiz
-        appWrapper.classList.add('relative', 'z-10', 'bg-[#F5F7FB]');
+        // İçeriği (main) ön plana alıp arka plan rengi verelim
+        scrollArea.classList.add('relative', 'z-10', 'bg-[#F5F7FB]');
+
+        // Navbar'ın altına gizlenecek şık yükleyiciyi (loader) oluşturalım
+        const loaderWrapper = document.createElement('div');
+        loaderWrapper.className = 'w-full flex justify-center h-0 overflow-visible relative z-0';
+        loaderWrapper.innerHTML = `
+            <div id="pullLoader" class="absolute top-4 flex items-center gap-2 text-brand text-xs font-bold opacity-0 transition-opacity duration-200">
+                <svg class="animate-spin h-4 w-4 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Güncelleniyor...
+            </div>
+        `;
+        // Yükleyiciyi tam içeriğin başladığı noktaya (Header'ın altına) yerleştir
+        scrollArea.parentNode.insertBefore(loaderWrapper, scrollArea);
+        const pullLoader = document.getElementById('pullLoader');
 
         scrollArea.addEventListener('touchstart', e => {
-            // Sadece sayfanın en üstündeysek çekme işlemine başla
+            // Sadece sayfa en üstteyken çekme işlemini kabul et
             if (scrollArea.scrollTop === 0) {
                 touchStartY = e.touches[0].screenY;
                 isPulling = true;
-                appWrapper.style.transition = 'none'; // Çekerken anında tepki vermesi için animasyonu kapat
+                scrollArea.style.transition = 'none'; // Parmağa anında tepki ver
             }
         }, { passive: true });
 
@@ -448,11 +459,16 @@
             const currentY = e.touches[0].screenY;
             pullDistance = currentY - touchStartY;
 
-            // Eğer sayfa en üstteyken aşağı çekiliyorsa efekti başlat
+            // Sadece aşağı doğru çekiliyorsa lastik efektini uygula
             if (pullDistance > 0 && scrollArea.scrollTop === 0) {
-                // Dirençli çekme hissi (gerçek bir lastik gibi, çekildikçe zorlaşır)
+                // Dirençli esneme (Gerçek bir lastik gibi, çekildikçe zorlaşır)
                 const resistance = Math.min(pullDistance * 0.4, 75); 
-                appWrapper.style.transform = `translateY(${resistance}px)`;
+                scrollArea.style.transform = `translateY(${resistance}px)`;
+                
+                // Biraz çekilince arkadaki "Güncelleniyor..." yazısı belirmeye başlasın
+                if (resistance > 20) {
+                    pullLoader.classList.remove('opacity-0');
+                }
             }
         }, { passive: true });
 
@@ -460,25 +476,18 @@
             if (!isPulling) return;
             isPulling = false;
 
-            // Bırakıldığında yumuşak geri dönüş animasyonunu aç
-            appWrapper.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            // Bırakıldığında yumuşak ve yaylı bir şekilde geri dönmesi için animasyonu aç
+            scrollArea.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
 
             if (pullDistance > 120 && scrollArea.scrollTop === 0) {
-                // Yeterince Çekildiyse: 40px'de asılı kal ve yenileniyor animasyonunu göster
-                appWrapper.style.transform = `translateY(40px)`; 
-                
-                const loader = document.createElement('div');
-                loader.innerHTML = `<div class="fixed top-0 left-0 w-full h-[40px] flex items-center justify-center gap-2 z-0 bg-[#F5F7FB] text-brand text-xs font-bold">
-                    <svg class="animate-spin h-4 w-4 text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Güncelleniyor...
-                </div>`;
-                document.body.prepend(loader);
-
-                // Yarım saniye sonra sayfayı tazeleyerek yeni verileri getir
+                // Tam çekildiyse asılı kal ve sayfayı yenile
+                scrollArea.style.transform = `translateY(45px)`; 
+                pullLoader.classList.remove('opacity-0');
                 setTimeout(() => window.location.reload(), 500);
             } else {
-                // Yeterince Çekilmediyse: Efekti iptal et ve orijinal (0px) yerine geri yaylan
-                appWrapper.style.transform = `translateY(0px)`;
+                // Tam çekilmediyse yerine geri fırla ve yazıyı gizle
+                scrollArea.style.transform = `translateY(0px)`;
+                pullLoader.classList.add('opacity-0');
             }
             
             pullDistance = 0;
