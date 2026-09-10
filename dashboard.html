@@ -411,19 +411,33 @@
         const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
         // PULL-TO-REFRESH MANTIĞI
-        let touchStartY = 0;
-        let touchEndY = 0;
-        document.addEventListener('touchstart', e => {
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
+        // PULL-TO-REFRESH MANTIĞI VE YÜKLEME EFEKTİ
+let touchStartY = 0;
+let touchEndY = 0;
+
+document.addEventListener('touchstart', e => {
+    touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+    touchEndY = e.changedTouches[0].screenY;
+    // Kullanıcı en üstteyken aşağı 120px çekerse yenile
+    if (window.scrollY === 0 && (touchEndY - touchStartY > 120)) {
         
-        document.addEventListener('touchend', e => {
-            touchEndY = e.changedTouches[0].screenY;
-            // Kullanıcı en üstteyken aşağı 120px çekerse yenile
-            if (window.scrollY === 0 && (touchEndY - touchStartY > 120)) {
-                window.location.reload();
-            }
-        }, { passive: true });
+        // Ekrana yükleniyor uyarısı bas
+        const loader = document.createElement('div');
+        loader.innerHTML = `<div class="fixed top-0 left-0 w-full bg-brand text-white text-xs font-semibold text-center py-2 z-[9999] shadow-md transition-all flex items-center justify-center gap-2">
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Sayfa Yenileniyor...
+        </div>`;
+        document.body.prepend(loader);
+
+        // Uyarının görünmesi için yarım saniye bekleyip sayfayı yenile
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    }
+}, { passive: true });
 
         async function uploadToCloudinary(file) {
             const formData = new FormData();
@@ -463,11 +477,10 @@
                     currentUserData = snapshot.docs[0].data();
                     startNotificationListener();
                     
-                    if (Notification.permission === 'granted') {
-                        requestNotificationPermission(); 
-                    } else if (Notification.permission === 'default') {
+                    if (Notification.permission === 'default') {
                         document.getElementById('notifBanner').classList.remove('hidden');
                     }
+                    // 'granted' (izinli) ise hiçbir şey yapma, uyarıları engelle
                     document.getElementById('userGreeting').innerText = `${currentUserData.fullName} (${currentUserData.block} / D. ${currentUserData.apartment})`;
                     document.getElementById('profilePhone').value = currentUserData.phone.replace('+90', '');
                     document.getElementById('profilePassword').value = '';
