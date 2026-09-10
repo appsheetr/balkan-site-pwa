@@ -51,7 +51,6 @@
         .tabular-nums { font-variant-numeric: tabular-nums; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Yeni Eklenen Line Clamp Sınıfı */
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -93,7 +92,6 @@
                         <h1 class="font-serif text-[15px] font-semibold leading-none tracking-tight truncate" id="userGreeting">Sakin</h1>
                     </div>
                 </div>
-                <!-- HEADER SAĞ KISIM -->
                 <div class="flex items-center gap-2 shrink-0 ml-3">
                     <button onclick="toggleNotificationPanel()" class="relative p-2 text-white hover:text-gold bg-white/10 hover:bg-white/20 rounded-xl transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,16 +110,14 @@
             <button onclick="requestNotificationPermission()" class="shrink-0 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg transition">Bildirimleri Aç</button>
         </div>
 
-        <!-- MAIN İÇERİĞİ -->
         <main class="flex-1 overflow-y-auto hide-scrollbar p-4 lg:p-8">
             <div class="max-w-4xl mx-auto space-y-7 pb-20">
 
                 <!-- SECTION: DASHBOARD OVERVIEW -->
                 <div id="view-dashboard" class="space-y-7 block">
-                    <!-- Üst İstatistikler -->
+                    
                     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-dark to-[#16305F] text-white p-5 shadow-plate">
                         <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-gold/10 blur-2xl pointer-events-none"></div>
-                        
                         <div class="relative flex items-center justify-between gap-4">
                             <div onclick="switchTab('finance')" class="cursor-pointer hover:opacity-80 transition group p-2 rounded-xl">
                                 <p class="text-[10px] uppercase tracking-[0.18em] text-blue-200/70 font-semibold mb-1.5 group-hover:text-gold transition">Kasa Bakiyesi</p>
@@ -139,7 +135,20 @@
                         </div>
                     </div>
 
-                    <!-- Alt Duyurular -->
+                    <!-- YENİ EKLENEN: ÖDENMEMİŞ AİDAT UYARISI -->
+                    <div id="unpaidDuesBanner" class="hidden bg-red-50 border border-red-200 p-4 rounded-2xl flex items-center justify-between gap-3 shadow-sm transform transition-all duration-500 scale-95 opacity-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-red-800 uppercase tracking-wider mb-0.5">Ödenmemiş Borcunuz Var</p>
+                                <p class="text-sm font-semibold text-red-600">Toplam: <span id="totalUnpaidAmount">0,00</span> ₺</p>
+                            </div>
+                        </div>
+                        <button onclick="switchTab('finance')" class="text-xs font-bold bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm border border-red-700">İncele</button>
+                    </div>
+
                     <div>
                         <div class="flex justify-between items-end mb-3">
                             <div>
@@ -154,24 +163,38 @@
 
                 <!-- SECTION: FINANCE -->
                 <div id="view-finance" class="hidden space-y-4">
-                    <div>
-                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Defter</p>
-                        <h3 class="font-serif text-base font-semibold text-ink">Gelir ve Gider Şeffaflık Tablosu</h3>
+                    
+                    <!-- YENİ EKLENEN: KİŞİSEL AİDAT LİSTESİ -->
+                    <div class="mb-8">
+                        <div class="mb-3">
+                            <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Bireysel Finans</p>
+                            <h3 class="font-serif text-base font-semibold text-ink">Aidat & Ödeme Durumum</h3>
+                        </div>
+                        <div id="myDuesList" class="space-y-3">
+                            <p class="text-xs text-slate-400">Ödeme bilgileri yükleniyor...</p>
+                        </div>
                     </div>
-                    <div class="bg-white rounded-2xl shadow-plate border border-slate-100 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs text-left text-slate-500">
-                                <thead class="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-50/80 border-b border-slate-100">
-                                    <tr>
-                                        <th class="px-3 py-3 font-semibold">Tarih</th>
-                                        <th class="px-3 py-3 font-semibold">Açıklama</th>
-                                        <th class="px-3 py-3 font-semibold">Tür</th>
-                                        <th class="px-3 py-3 text-center font-semibold">Makbuz</th>
-                                        <th class="px-3 py-3 text-right font-semibold">Tutar</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="residentFinanceTable"></tbody>
-                            </table>
+
+                    <div>
+                        <div class="mb-3">
+                            <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Defter</p>
+                            <h3 class="font-serif text-base font-semibold text-ink">Sitenin Genel Gelir/Gider Tablosu</h3>
+                        </div>
+                        <div class="bg-white rounded-2xl shadow-plate border border-slate-100 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left text-slate-500">
+                                    <thead class="text-[10px] text-slate-500 uppercase tracking-wide bg-slate-50/80 border-b border-slate-100">
+                                        <tr>
+                                            <th class="px-3 py-3 font-semibold">Tarih</th>
+                                            <th class="px-3 py-3 font-semibold">Açıklama</th>
+                                            <th class="px-3 py-3 font-semibold">Tür</th>
+                                            <th class="px-3 py-3 text-center font-semibold">Makbuz</th>
+                                            <th class="px-3 py-3 text-right font-semibold">Tutar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="residentFinanceTable"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -202,7 +225,6 @@
                     </div>
                     <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
                         <p class="text-xs text-slate-400 mb-4 leading-relaxed">Şikayet veya öneriniz doğrudan site yöneticisine iletilir.</p>
-
                         <form onsubmit="event.preventDefault(); handleSendComplaint();">
                             <div class="mb-3">
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Bildirim Türü</label>
@@ -241,7 +263,6 @@
                     </div>
                     <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
                         <form id="profileForm" onsubmit="event.preventDefault(); handleProfileUpdate();">
-                            
                             <div class="flex items-center gap-4 mb-6">
                                 <div class="w-16 h-16 rounded-full bg-slate-100 border-2 border-brand overflow-hidden shrink-0">
                                     <img id="profileAvatarPreview" src="https://via.placeholder.com/150" class="w-full h-full object-cover">
@@ -251,7 +272,6 @@
                                     <input type="file" id="profileAvatarFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-light file:text-brand hover:file:bg-blue-100">
                                 </div>
                             </div>
-
                             <div class="mb-4">
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Cep Telefonu (Değişirse onaya düşer)</label>
                                 <div class="flex">
@@ -259,12 +279,10 @@
                                     <input type="tel" id="profilePhone" maxlength="10" oninput="validatePhoneInput(this)" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-r-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required>
                                 </div>
                             </div>
-
                             <div class="mb-6">
                                 <label class="block text-xs font-medium text-slate-600 mb-1">Yeni Şifre (değiştirmek istemiyorsanız boş bırakın)</label>
                                 <input type="password" id="profilePassword" placeholder="••••••••" class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
                             </div>
-
                             <button type="submit" id="profileSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark hover:brightness-110 text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Bilgilerimi Güncelle</button>
                         </form>
                     </div>
@@ -283,7 +301,6 @@
             </button>
         </div>
         <div class="hidden md:flex bg-white border-2 border-slate-200 rounded-2xl shadow-nav items-center justify-between px-2 py-2">
-            <!-- Menü Butonları (Orijinal ile Aynı) -->
             <button onclick="switchTab('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl bg-brand-dark text-white shadow-md transition-colors flex-1">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
                 <span class="text-[10px] font-semibold">Özet</span>
@@ -320,9 +337,7 @@
         <div id="bottomSheetContent" class="bg-white w-full max-w-2xl mx-auto rounded-t-[2rem] overflow-hidden transform translate-y-full transition-transform duration-300 shadow-2xl">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <h3 class="font-serif text-lg font-bold text-ink">Tüm İşlemler</h3>
-                <button onclick="closeBottomSheet()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+                <button onclick="closeBottomSheet()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors">✕</button>
             </div>
             <div class="p-3 space-y-1">
                 <button onclick="switchTab('dashboard')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Özet Ekranı</button>
@@ -354,10 +369,9 @@
         </div>
     </div>
 
-    <!-- BİLDİRİM MERKEZİ YAN PANELİ (DRAWER) -->
+    <!-- BİLDİRİM MERKEZİ -->
     <div id="notificationOverlay" class="fixed inset-0 bg-ink/50 backdrop-blur-sm z-[120] hidden opacity-0 transition-opacity duration-300" onclick="toggleNotificationPanel()"></div>
     <div id="notificationPanel" class="fixed top-0 right-0 h-full w-full max-w-[320px] bg-[#F5F7FB] shadow-2xl z-[130] transform translate-x-full transition-transform duration-300 flex flex-col">
-        <!-- Panel Başlığı -->
         <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-white shadow-sm">
             <div class="flex items-center gap-2">
                 <h3 class="font-serif text-lg font-bold text-ink">Bildirimler</h3>
@@ -365,19 +379,15 @@
             </div>
             <button onclick="toggleNotificationPanel()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 text-slate-500 hover:text-brand">✕</button>
         </div>
-        <!-- Toplu Aksiyon Çubuğu -->
         <div class="px-4 py-2 border-b border-slate-200 flex justify-end bg-slate-50">
-            <button onclick="deleteAllNotifications()" class="text-[11px] font-semibold text-red-500 bg-white hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5 shadow-sm">
-                Tümünü Sil
-            </button>
+            <button onclick="deleteAllNotifications()" class="text-[11px] font-semibold text-red-500 bg-white hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5 shadow-sm">Tümünü Sil</button>
         </div>
-        <!-- Bildirim Listesi -->
         <div id="notificationList" class="flex-1 overflow-y-auto p-3 space-y-2 hide-scrollbar">
             <div class="p-8 text-center text-slate-400 text-sm">Yükleniyor...</div>
         </div>
     </div>
 
-    <!-- YENİ EKLENEN: BİLDİRİM DETAY MODALI (Tam Metin İçin) -->
+    <!-- BİLDİRİM DETAY MODALI -->
     <div id="notifDetailModal" class="fixed inset-0 z-[140] hidden items-center justify-center p-4 bg-ink/60 backdrop-blur-sm opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[80vh]">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -385,12 +395,13 @@
                 <button onclick="closeNotifDetailModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500">✕</button>
             </div>
             <div class="p-5 overflow-y-auto hide-scrollbar">
-                <p id="notifDetailBody" class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap"></p>
+                <p id="notifDetailBody" class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap break-words"></p>
                 <span id="notifDetailTime" class="text-[10px] text-slate-400 font-semibold mt-4 block border-t border-slate-100 pt-3"></span>
             </div>
         </div>
     </div>
 
+    <!-- APPLICATION SCRIPTS -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCXF8oiGvPCvUCwq1RVKHsttIsOAnOb4kM",
@@ -410,34 +421,22 @@
         const CLOUDINARY_UPLOAD_PRESET = "balkan_site_unsigned";
         const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 
-        // PULL-TO-REFRESH MANTIĞI
-        // PULL-TO-REFRESH MANTIĞI VE YÜKLEME EFEKTİ
-let touchStartY = 0;
-let touchEndY = 0;
-
-document.addEventListener('touchstart', e => {
-    touchStartY = e.changedTouches[0].screenY;
-}, { passive: true });
-
-document.addEventListener('touchend', e => {
-    touchEndY = e.changedTouches[0].screenY;
-    // Kullanıcı en üstteyken aşağı 120px çekerse yenile
-    if (window.scrollY === 0 && (touchEndY - touchStartY > 120)) {
-        
-        // Ekrana yükleniyor uyarısı bas
-        const loader = document.createElement('div');
-        loader.innerHTML = `<div class="fixed top-0 left-0 w-full bg-brand text-white text-xs font-semibold text-center py-2 z-[9999] shadow-md transition-all flex items-center justify-center gap-2">
-            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            Sayfa Yenileniyor...
-        </div>`;
-        document.body.prepend(loader);
-
-        // Uyarının görünmesi için yarım saniye bekleyip sayfayı yenile
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
-    }
-}, { passive: true });
+        // PULL-TO-REFRESH
+        let touchStartY = 0;
+        let touchEndY = 0;
+        document.addEventListener('touchstart', e => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
+        document.addEventListener('touchend', e => {
+            touchEndY = e.changedTouches[0].screenY;
+            if (window.scrollY === 0 && (touchEndY - touchStartY > 120)) {
+                const loader = document.createElement('div');
+                loader.innerHTML = `<div class="fixed top-0 left-0 w-full bg-brand text-white text-xs font-semibold text-center py-2 z-[9999] shadow-md flex items-center justify-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Sayfa Yenileniyor...
+                </div>`;
+                document.body.prepend(loader);
+                setTimeout(() => window.location.reload(), 500);
+            }
+        }, { passive: true });
 
         async function uploadToCloudinary(file) {
             const formData = new FormData();
@@ -452,38 +451,30 @@ document.addEventListener('touchend', e => {
 
         let currentUserData = null;
         let currentUserId = null;
-
         const sessionPhone = localStorage.getItem('userPhone');
         const sessionRole = localStorage.getItem('userRole');
 
         if (sessionRole !== 'resident' || !sessionPhone) {
             const params = new URLSearchParams(window.location.search);
-            if(params.has('id')) {
-                localStorage.setItem('targetAnnounceId', params.get('id'));
-            }
+            if(params.has('id')) localStorage.setItem('targetAnnounceId', params.get('id'));
             window.location.href = "index.html";
         } else {
             firebase.auth().onAuthStateChanged(user => {
-                if (!user) {
-                    logout();
-                    return;
-                }
+                if (!user) { logout(); return; }
                 db.collection("users").where("phone", "==", sessionPhone).get().then(snapshot => {
-                    if (snapshot.empty) {
-                        logout();
-                        return;
-                    }
+                    if (snapshot.empty) { logout(); return; }
                     currentUserId = snapshot.docs[0].id;
                     currentUserData = snapshot.docs[0].data();
+                    
                     startNotificationListener();
+                    loadMyDues(); // BİREYSEL AİDATLARI YÜKLE
                     
                     if (Notification.permission === 'default') {
                         document.getElementById('notifBanner').classList.remove('hidden');
                     }
-                    // 'granted' (izinli) ise hiçbir şey yapma, uyarıları engelle
+                    
                     document.getElementById('userGreeting').innerText = `${currentUserData.fullName} (${currentUserData.block} / D. ${currentUserData.apartment})`;
                     document.getElementById('profilePhone').value = currentUserData.phone.replace('+90', '');
-                    document.getElementById('profilePassword').value = '';
 
                     if(currentUserData.avatarUrl) {
                         document.getElementById('headerAvatarSvg').classList.add('hidden');
@@ -494,6 +485,72 @@ document.addEventListener('touchend', e => {
                     }
                 });
             });
+        }
+
+        // --- YENİ: KULLANICININ AİDATLARINI ÇEKME ---
+        async function loadMyDues() {
+            if (!currentUserId) return;
+            const banner = document.getElementById('unpaidDuesBanner');
+            const amountText = document.getElementById('totalUnpaidAmount');
+            const listContainer = document.getElementById('myDuesList');
+            
+            try {
+                const periodsSnap = await db.collection("dues_periods").orderBy("createdAt", "desc").get();
+                if (periodsSnap.empty) {
+                    listContainer.innerHTML = '<p class="text-xs text-slate-500 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">Henüz adınıza tanımlanmış bir aidat bulunmuyor.</p>';
+                    return;
+                }
+
+                let totalUnpaid = 0;
+                let duesHtml = '';
+
+                for (const doc of periodsSnap.docs) {
+                    const periodData = doc.data();
+                    const recordDoc = await db.collection("dues_periods").doc(doc.id).collection("records").doc(currentUserId).get();
+                    
+                    if (recordDoc.exists) {
+                        const recordData = recordDoc.data();
+                        const isPaid = recordData.status === 'Ödendi';
+                        const amountStr = recordData.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+                        
+                        if (!isPaid) totalUnpaid += recordData.amount;
+
+                        const statusClass = isPaid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200';
+                        const iconHtml = isPaid 
+                            ? `<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>`
+                            : `<div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500 shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>`;
+
+                        duesHtml += `
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between gap-3 ${!isPaid ? 'border-l-4 border-l-red-500' : ''}">
+                                <div class="flex items-center gap-3">
+                                    ${iconHtml}
+                                    <div>
+                                        <h4 class="text-sm font-bold text-ink">${periodData.month} ${periodData.year} Aidatı</h4>
+                                        <p class="text-[10px] text-slate-500 mt-0.5">${periodData.description}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right flex flex-col items-end gap-1">
+                                    <span class="text-sm font-bold text-ink">${amountStr} ₺</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${recordData.status}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                listContainer.innerHTML = duesHtml || '<p class="text-xs text-slate-500 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">Aidat kaydınız bulunmuyor.</p>';
+
+                if (totalUnpaid > 0) {
+                    amountText.innerText = totalUnpaid.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+                    banner.classList.remove('hidden');
+                    banner.classList.remove('scale-95', 'opacity-0'); // Giriş animasyonu
+                } else {
+                    banner.classList.add('hidden');
+                }
+
+            } catch (error) {
+                console.error("Aidat hatası:", error);
+            }
         }
 
         function validatePhoneInput(input) {
@@ -507,10 +564,7 @@ document.addEventListener('touchend', e => {
             const content = document.getElementById('bottomSheetContent');
             sheet.classList.remove('hidden');
             sheet.classList.add('flex');
-            setTimeout(() => {
-                sheet.classList.remove('opacity-0');
-                content.classList.remove('translate-y-full');
-            }, 10);
+            setTimeout(() => { sheet.classList.remove('opacity-0'); content.classList.remove('translate-y-full'); }, 10);
         }
 
         function closeBottomSheet() {
@@ -518,10 +572,7 @@ document.addEventListener('touchend', e => {
             const content = document.getElementById('bottomSheetContent');
             sheet.classList.add('opacity-0');
             content.classList.add('translate-y-full');
-            setTimeout(() => {
-                sheet.classList.add('hidden');
-                sheet.classList.remove('flex');
-            }, 300);
+            setTimeout(() => { sheet.classList.add('hidden'); sheet.classList.remove('flex'); }, 300);
         }
 
         const tabs = ['dashboard', 'finance', 'announcements', 'complaint', 'residents', 'profile', 'decisions'];
@@ -544,7 +595,6 @@ document.addEventListener('touchend', e => {
             if(tabId === 'residents') loadResidentsData();
         }
 
-        // TABLO VE VERİ YÜKLEME KODLARI
         function loadDashboardData() {
             db.collection("finance").get().then(snapshot => {
                 let total = 0;
@@ -600,7 +650,7 @@ document.addEventListener('touchend', e => {
                     const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
                     const isIncome = f.type === 'Gelir';
                     const receiptBtn = f.receiptUrl 
-                        ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold" title="Görüntüle">Gör</a>`
+                        ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold">Gör</a>`
                         : '<span class="text-slate-300">-</span>';
                     const rowBg = isIncome ? 'bg-green-50/50 hover:bg-green-50' : 'bg-red-50/50 hover:bg-red-50';
                     const typeBadge = `<span class="${isIncome ? 'text-green-700 bg-green-100/70 border-green-200' : 'text-red-700 bg-red-100/70 border-red-200'} px-2 py-0.5 rounded text-[10px] font-bold border">${f.type}</span>`;
@@ -877,7 +927,23 @@ document.addEventListener('touchend', e => {
             }
         }
 
-        // BİLDİRİM OKUMA FONKSİYONLARI VE POP-UP
+        function handleNotificationClick(notifId, type, targetId) {
+            markNotificationAsRead(notifId);
+            const panel = document.getElementById('notificationPanel');
+            if (!panel.classList.contains('translate-x-full')) toggleNotificationPanel();
+
+            if (type === 'announcements') {
+                switchTab('announcements');
+                if (targetId && window.announcementsMap && window.announcementsMap[targetId]) {
+                    setTimeout(() => openAnnouncementModal(targetId), 300);
+                }
+            } else if (type === 'finance') {
+                switchTab('finance');
+            } else if (type === 'decisions') {
+                switchTab('decisions');
+            }
+        }
+
         function openNotifDetailModal(title, body, timeStr) {
             document.getElementById('notifDetailTitle').innerText = title;
             document.getElementById('notifDetailBody').innerText = body;
@@ -901,109 +967,81 @@ document.addEventListener('touchend', e => {
             }, 300);
         }
 
-        // YENİ: Bildirime tıklandığında yönlendirme yapan fonksiyon
-function handleNotificationClick(notifId, type, targetId) {
-    // 1. Tıklanan bildirimi sessizce "Okundu" işaretle
-    markNotificationAsRead(notifId);
+        function startNotificationListener() {
+            if (!currentUserId) return;
+            if (notifUnsubscribe) notifUnsubscribe();
 
-    // 2. Bildirim Paneli (Drawer) Kapat
-    const panel = document.getElementById('notificationPanel');
-    if (!panel.classList.contains('translate-x-full')) {
-        toggleNotificationPanel();
-    }
+            notifUnsubscribe = db.collection("users").doc(currentUserId).collection("notifications")
+                .orderBy("createdAt", "desc").limit(30)
+                .onSnapshot(snapshot => {
+                    const listContainer = document.getElementById('notificationList');
+                    const badge = document.getElementById('notifBadge');
+                    const countText = document.getElementById('notifCountText');
+                    
+                    if (snapshot.empty) {
+                        listContainer.innerHTML = `
+                            <div class="flex flex-col items-center justify-center p-8 text-center h-full opacity-60">
+                                <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                <p class="text-sm font-medium text-slate-500">Şu an yeni bildiriminiz yok.</p>
+                            </div>`;
+                        badge.classList.add('hidden');
+                        badge.classList.remove('flex');
+                        countText.innerText = '0 Yeni';
+                        return;
+                    }
 
-    // 3. Pusulaya (Type) göre ilgili menü sekmesini aç
-    if (type === 'announcements') {
-        switchTab('announcements');
-        // Eğer bu bir duyuruysa ve sistemde o duyuru varsa, direkt Pop-up detayını aç
-        if (targetId && window.announcementsMap && window.announcementsMap[targetId]) {
-            setTimeout(() => openAnnouncementModal(targetId), 300);
+                    listContainer.innerHTML = '';
+                    let unreadCount = 0;
+
+                    snapshot.forEach(doc => {
+                        const notif = doc.data();
+                        if (!notif.isRead) unreadCount++;
+
+                        const isReadClass = notif.isRead ? 'opacity-60 bg-transparent border-transparent' : 'bg-white border-brand/20 shadow-sm border-l-[3px] border-l-brand';
+                        const timeStr = notif.createdAt ? new Date(notif.createdAt.toDate()).toLocaleDateString('tr-TR', { hour: '2-digit', minute:'2-digit'}) : 'Az önce';
+                        
+                        const isLongText = notif.body && notif.body.length > 80;
+                        const safeTitle = notif.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        const safeBody = notif.body.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+
+                        const notifType = notif.type || 'general';
+                        const notifTargetId = notif.targetId || '';
+                        const isRoutable = (notifType === 'announcements' || notifType === 'finance' || notifType === 'decisions');
+                        
+                        const clickEvent = isRoutable ? `onclick="handleNotificationClick('${doc.id}', '${notifType}', '${notifTargetId}')"` : '';
+                        const cursorClass = isRoutable ? 'cursor-pointer hover:bg-slate-50' : '';
+
+                        listContainer.innerHTML += `
+                            <div class="relative flex flex-col p-3 rounded-xl border border-slate-100 transition-all ${isReadClass} ${cursorClass}" ${clickEvent}>
+                                <div class="flex items-start justify-between gap-2">
+                                    <h5 class="text-sm font-bold text-ink leading-tight">${notif.title}</h5>
+                                    ${!notif.isRead ? `
+                                    <button onclick="event.stopPropagation(); markNotificationAsRead('${doc.id}')" class="shrink-0 text-brand p-1 bg-brand-light rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>` : ''}
+                                </div>
+                                <p class="text-[11px] text-slate-500 leading-relaxed mt-1 line-clamp-2 break-all whitespace-pre-wrap">${notif.body}</p>
+                                ${isLongText ? `
+                                <button onclick="event.stopPropagation(); openNotifDetailModal('${safeTitle}', '${safeBody}', '${timeStr}')" class="text-[10px] font-bold text-brand hover:underline mt-1 text-left w-fit relative z-10">
+                                    Devamını Oku...
+                                </button>` : ''}
+                                <span class="text-[9px] font-semibold text-slate-400 mt-2 block uppercase tracking-wider">${timeStr}</span>
+                            </div>
+                        `;
+                    });
+
+                    if (unreadCount > 0) {
+                        badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
+                        badge.classList.remove('hidden');
+                        badge.classList.add('flex');
+                        countText.innerText = `${unreadCount} Yeni`;
+                    } else {
+                        badge.classList.add('hidden');
+                        badge.classList.remove('flex');
+                        countText.innerText = `Tümü Okundu`;
+                    }
+                });
         }
-    } else if (type === 'finance') {
-        switchTab('finance');
-    } else if (type === 'decisions') {
-        switchTab('decisions');
-    }
-}
-
-// GÜNCELLENMİŞ CANLI DİNLEYİCİ
-function startNotificationListener() {
-    if (!currentUserId) return;
-    if (notifUnsubscribe) notifUnsubscribe();
-
-    notifUnsubscribe = db.collection("users").doc(currentUserId).collection("notifications")
-        .orderBy("createdAt", "desc").limit(30)
-        .onSnapshot(snapshot => {
-            const listContainer = document.getElementById('notificationList');
-            const badge = document.getElementById('notifBadge');
-            const countText = document.getElementById('notifCountText');
-            
-            if (snapshot.empty) {
-                listContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center p-8 text-center h-full opacity-60">
-                        <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        <p class="text-sm font-medium text-slate-500">Şu an yeni bildiriminiz yok.</p>
-                    </div>`;
-                badge.classList.add('hidden');
-                badge.classList.remove('flex');
-                countText.innerText = '0 Yeni';
-                return;
-            }
-
-            listContainer.innerHTML = '';
-            let unreadCount = 0;
-
-            snapshot.forEach(doc => {
-                const notif = doc.data();
-                if (!notif.isRead) unreadCount++;
-
-                const isReadClass = notif.isRead ? 'opacity-60 bg-transparent border-transparent' : 'bg-white border-brand/20 shadow-sm border-l-[3px] border-l-brand';
-                const timeStr = notif.createdAt ? new Date(notif.createdAt.toDate()).toLocaleDateString('tr-TR', { hour: '2-digit', minute:'2-digit'}) : 'Az önce';
-                
-                const isLongText = notif.body && notif.body.length > 80;
-                const safeTitle = notif.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                const safeBody = notif.body.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
-
-                // Yönlendirme Pusulası Kontrolü
-                const notifType = notif.type || 'general';
-                const notifTargetId = notif.targetId || '';
-                const isRoutable = (notifType === 'announcements' || notifType === 'finance' || notifType === 'decisions');
-                
-                // Eğer tıklandığında bir yere gidecekse tıklanabilir özellik ve imleç (cursor) ekle
-                const clickEvent = isRoutable ? `onclick="handleNotificationClick('${doc.id}', '${notifType}', '${notifTargetId}')"` : '';
-                const cursorClass = isRoutable ? 'cursor-pointer hover:bg-slate-50' : '';
-
-                listContainer.innerHTML += `
-                    <div class="relative flex flex-col p-3 rounded-xl border border-slate-100 transition-all ${isReadClass} ${cursorClass}" ${clickEvent}>
-                        <div class="flex items-start justify-between gap-2">
-                            <h5 class="text-sm font-bold text-ink leading-tight">${notif.title}</h5>
-                            ${!notif.isRead ? `
-                            <button onclick="event.stopPropagation(); markNotificationAsRead('${doc.id}')" class="shrink-0 text-brand p-1 bg-brand-light rounded-lg">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            </button>` : ''}
-                        </div>
-                        <p class="text-[11px] text-slate-500 leading-relaxed mt-1 line-clamp-2 break-all whitespace-pre-wrap">${notif.body}</p>
-                        ${isLongText ? `
-                        <button onclick="event.stopPropagation(); openNotifDetailModal('${safeTitle}', '${safeBody}', '${timeStr}')" class="text-[10px] font-bold text-brand hover:underline mt-1 text-left w-fit relative z-10">
-                            Devamını Oku...
-                        </button>` : ''}
-                        <span class="text-[9px] font-semibold text-slate-400 mt-2 block uppercase tracking-wider">${timeStr}</span>
-                    </div>
-                `;
-            });
-
-            if (unreadCount > 0) {
-                badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
-                badge.classList.remove('hidden');
-                badge.classList.add('flex');
-                countText.innerText = `${unreadCount} Yeni`;
-            } else {
-                badge.classList.add('hidden');
-                badge.classList.remove('flex');
-                countText.innerText = `Tümü Okundu`;
-            }
-        });
-}
 
         async function requestNotificationPermission() {
             if (!currentUserId) return alert("Lütfen önce giriş işleminin tamamlanmasını bekleyin.");
