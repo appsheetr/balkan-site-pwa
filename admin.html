@@ -1077,54 +1077,75 @@
             });
         }
 
-        function openDuesDetail(periodId, month, year, desc, amount) {
-            document.getElementById('duesModalTitle').innerText = `${month} ${year} Aidat Durumu`;
-            document.getElementById('duesModalDesc').innerText = `${desc} - ${amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
-            
-            const container = document.getElementById('duesRecordsContainer');
-            container.innerHTML = '<p class="text-sm text-gray-500">Kayıtlar yükleniyor...</p>';
+        // 3. Dönem Detayını (Sakinlerin Ödeme Durumunu) Açma
+function openDuesDetail(periodId, month, year, desc, amount) {
+    document.getElementById('duesModalTitle').innerText = `${month} ${year} Aidat Durumu`;
+    document.getElementById('duesModalDesc').innerText = `${desc} - ${amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
+    
+    const container = document.getElementById('duesRecordsContainer');
+    container.innerHTML = '<p class="text-sm text-gray-500 col-span-full">Kayıtlar yükleniyor...</p>';
 
-            const modal = document.getElementById('duesDetailModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.children[0].classList.remove('scale-95');
-            }, 10);
+    const modal = document.getElementById('duesDetailModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.children[0].classList.remove('scale-95');
+    }, 10);
 
-            db.collection("dues_periods").doc(periodId).collection("records")
-              .orderBy("block").orderBy("apartment").onSnapshot(snapshot => {
-                container.innerHTML = '';
-                let paid = 0, unpaid = 0;
+    // ÇÖZÜM: Firebase Index hatasına takılmamak için orderBy komutlarını sildik
+    db.collection("dues_periods").doc(periodId).collection("records").onSnapshot(snapshot => {
+        container.innerHTML = '';
+        let paid = 0, unpaid = 0;
 
-                snapshot.forEach(doc => {
-                    const r = doc.data();
-                    const isPaid = r.status === 'Ödendi';
-                    if (isPaid) paid++; else unpaid++;
-
-                    const statusClass = isPaid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200';
-                    const btnColor = isPaid ? 'bg-gray-100 hover:bg-gray-200 text-gray-600' : 'bg-green-500 hover:bg-green-600 text-white';
-                    const btnText = isPaid ? 'Ödenmedi Yap' : 'Ödendi İşaretle';
-
-                    container.innerHTML += `
-                        <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm">
-                            <div>
-                                <p class="font-bold text-gray-800 text-sm">${r.block} / D.${r.apartment}</p>
-                                <p class="text-xs text-gray-500 mt-0.5">${r.fullName}</p>
-                                <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${r.status}</span>
-                            </div>
-                            <button onclick="toggleDuesStatus('${periodId}', '${doc.id}', '${r.status}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
-                                ${btnText}
-                            </button>
-                        </div>
-                    `;
-                });
-
-                document.getElementById('duesTotalCount').innerText = snapshot.size;
-                document.getElementById('duesPaidCount').innerText = paid;
-                document.getElementById('duesUnpaidCount').innerText = unpaid;
-            });
+        if (snapshot.empty) {
+            container.innerHTML = '<p class="text-sm text-red-500 col-span-full">Sakin kaydı bulunamadı! Lütfen aidatı oluştururken onaylı sakinler olduğundan emin olun veya yeni bir aidat dönemi açın.</p>';
+            document.getElementById('duesTotalCount').innerText = "0";
+            document.getElementById('duesPaidCount').innerText = "0";
+            document.getElementById('duesUnpaidCount').innerText = "0";
+            return;
         }
+
+        // Verileri bir diziye alıp Blok ve Daire numarasına göre Javascript ile sıralıyoruz
+        const records = [];
+        snapshot.forEach(doc => {
+            records.push({ id: doc.id, ...doc.data() });
+        });
+
+        records.sort((a, b) => {
+            if (a.block === b.block) {
+                return parseInt(a.apartment) - parseInt(b.apartment);
+            }
+            return a.block.localeCompare(b.block);
+        });
+
+        records.forEach(r => {
+            const isPaid = r.status === 'Ödendi';
+            if (isPaid) paid++; else unpaid++;
+
+            const statusClass = isPaid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200';
+            const btnColor = isPaid ? 'bg-gray-100 hover:bg-gray-200 text-gray-600' : 'bg-green-500 hover:bg-green-600 text-white';
+            const btnText = isPaid ? 'Ödenmedi Yap' : 'Ödendi İşaretle';
+
+            container.innerHTML += `
+                <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm">
+                    <div>
+                        <p class="font-bold text-gray-800 text-sm">${r.block} / D.${r.apartment}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">${r.fullName}</p>
+                        <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${r.status}</span>
+                    </div>
+                    <button onclick="toggleDuesStatus('${periodId}', '${r.id}', '${r.status}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
+                        ${btnText}
+                    </button>
+                </div>
+            `;
+        });
+
+        document.getElementById('duesTotalCount').innerText = snapshot.size;
+        document.getElementById('duesPaidCount').innerText = paid;
+        document.getElementById('duesUnpaidCount').innerText = unpaid;
+    });
+}
 
         function closeDuesDetailModal() {
             const modal = document.getElementById('duesDetailModal');
