@@ -28,67 +28,43 @@ exports.onManualNotification = functions.region('europe-west3').firestore
     .document('notifications/{docId}')
     .onCreate(async (snap, context) => {
         const data = snap.data();
-        
-        // Gelen verinin alan adını garantiye alıyoruz (Hata vermemesi için)
         const notificationTitle = data.title || "Yeni Bildirim";
-        const notificationBody = data.message || data.content || data.body || "Mesaj detayı bulunamadı.";
+        const notificationBody = data.body || "Mesaj detayı bulunamadı.";
+        const recipients = data.recipients || []; // Sadece Admin'den seçilenler
         
-        const usersSnapshot = await admin.firestore().collection('users').where('isApproved', '==', true).get();
-        
+        if (recipients.length === 0) return null;
+
         const tokens = [];
         const batch = admin.firestore().batch();
 
-        usersSnapshot.forEach(doc => {
-            const userData = doc.data();
+        for (const userId of recipients) {
+            const userDoc = await admin.firestore().collection('users').doc(userId).get();
             
-            // Push bildirim için tokenleri topla
-            if (userData.fcmToken) {
-                tokens.push(userData.fcmToken);
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                if (userData.fcmToken) tokens.push(userData.fcmToken);
+
+                // Zile düşecek olan bildirimi robot tek seferde yazıyor
+                const userNotifRef = admin.firestore().collection('users').doc(userId).collection('notifications').doc(context.params.docId);
+                batch.set(userNotifRef, {
+                    title: notificationTitle,
+                    body: notificationBody,
+                    isRead: false,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp()
+                });
             }
+        }
 
-            // Uygulama İçi Bildirim Merkezine Yazma İşlemi
-            const userNotifRef = admin.firestore().collection('users').doc(doc.id).collection('notifications').doc();
-            batch.set(userNotifRef, {
-                title: notificationTitle,
-                body: notificationBody,
-                isRead: false,
-                createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-        });
-
-        // Zil ikonu için veritabanına kaydı tamamla
         await batch.commit();
 
-        // Telefonlara Push Bildirim (FCM) gönder
-        // FCM Bildirim Paketi (iOS APNs Uyumluluğu İçin)
-if (tokens.length > 0) {
-    const payload = {
-        notification: {
-            title: notificationTitle,
-            body: notificationBody,
-            sound: "default"
-        },
-        data: {
-            title: notificationTitle,
-            body: notificationBody,
-            click_action: "FLUTTER_NOTIFICATION_CLICK"
+        if (tokens.length > 0) {
+            const payload = {
+                notification: { title: notificationTitle, body: notificationBody, sound: "default" },
+                data: { title: notificationTitle, body: notificationBody, click_action: "FLUTTER_NOTIFICATION_CLICK" }
+            };
+            const options = { priority: "high", timeToLive: 60 * 60 * 24 };
+            await admin.messaging().sendToDevice(tokens, payload, options);
         }
-    };
-    
-    // iOS için yüksek öncelikli bildirim ayarı
-    const options = {
-        priority: "high",
-        timeToLive: 60 * 60 * 24
-    };
-
-    try {
-        const response = await admin.messaging().sendToDevice(tokens, payload, options);
-        console.log("Push bildirimler başarıyla gönderildi:", response.successCount);
-    } catch (error) {
-        console.error("Push bildirim hatası:", error);
-    }
-}
-        
         return null;
     });
 

@@ -935,7 +935,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </button>` : ''}
                                 </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed mt-1 line-clamp-2">${notif.body}</p>
+                                <p class="text-[11px] text-slate-500 leading-relaxed mt-1 line-clamp-2 break-all whitespace-pre-wrap">${safeBody}</p>
                                 ${isLongText ? `
                                 <button onclick="openNotifDetailModal('${safeTitle}', '${safeBody}', '${timeStr}')" class="text-[10px] font-bold text-brand hover:underline mt-1 text-left w-fit">
                                     Devamını Oku...

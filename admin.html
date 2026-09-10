@@ -1330,91 +1330,43 @@
         }
 
         async function sendManualNotification() {
-            const title = document.getElementById('notifTitle').value.trim();
-            const body = document.getElementById('notifBody').value.trim();
-            const btn = document.getElementById('notifSubmitBtn');
-            const selectedUsers = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(c => c.value);
+    const title = document.getElementById('notifTitle').value.trim();
+    const body = document.getElementById('notifBody').value.trim();
+    const btn = document.getElementById('notifSubmitBtn');
+    const selectedUsers = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(c => c.value);
 
-            if (!title || !body || selectedUsers.length === 0) {
-                return alert("Lütfen başlık, içerik ve en az bir alıcı seçin.");
-            }
+    if (!title || !body || selectedUsers.length === 0) {
+        return alert("Lütfen başlık, içerik ve en az bir alıcı seçin.");
+    }
 
-            btn.disabled = true;
-            btn.innerText = "Gönderiliyor...";
+    btn.disabled = true;
+    btn.innerText = "Gönderiliyor...";
 
-            try {
-                const batch = db.batch();
-                const notifRef = db.collection("notifications").doc(); // Geçmiş panosu için merkez
+    try {
+        // ÇÖZÜM: Sadece merkezi klasöre 1 KERE yazıyoruz. Alt kullanıcılara dağıtmayı Cloud Function yapacak.
+        await db.collection("notifications").add({
+            title: title,
+            body: body,
+            recipients: selectedUsers,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-                batch.set(notifRef, {
-                    title: title,
-                    body: body,
-                    recipients: selectedUsers,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+        alert("Bildirim seçili kullanıcılara başarıyla gönderildi!");
+        
+        document.getElementById('notifTitle').value = "";
+        document.getElementById('notifBody').value = "";
+        document.querySelectorAll('.user-checkbox').forEach(c => c.checked = false);
+        loadAdminNotificationHistory();
 
-                // Seçilen her kullanıcının kendi bildirim kutusuna ekle
-                selectedUsers.forEach(userId => {
-                    const userNotifRef = db.collection("users").doc(userId).collection("notifications").doc(notifRef.id);
-                    batch.set(userNotifRef, {
-                        title: title,
-                        body: body,
-                        isRead: false,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                });
+    } catch (error) {
+        alert("Hata: " + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Bildirimi Gönder";
+    }
+}
 
-                await batch.commit();
-                alert("Bildirim seçili kullanıcılara başarıyla gönderildi!");
-                
-                document.getElementById('notifTitle').value = "";
-                document.getElementById('notifBody').value = "";
-                // Seçimleri temizle
-                document.querySelectorAll('.user-checkbox').forEach(c => c.checked = false);
-                loadAdminNotificationHistory();
-
-            } catch (error) {
-                alert("Hata: " + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Bildirimi Gönder";
-            }
-        }
-
-        function loadAdminNotificationHistory() {
-            db.collection("notifications").orderBy("createdAt", "desc").get().then(snapshot => {
-                const table = document.getElementById('adminNotifTable');
-                table.innerHTML = '';
-                if(snapshot.empty) {
-                    table.innerHTML = '<tr><td colspan="3" class="p-2 text-center text-gray-400">Henüz gönderilmiş bildirim yok.</td></tr>';
-                    return;
-                }
-                
-                snapshot.forEach(doc => {
-                    const n = doc.data();
-                    const dateStr = n.createdAt ? new Date(n.createdAt.toDate()).toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Az Önce';
-                    
-                    const safeTitle = n.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safeBody = n.body.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
-                    const recipientsJson = JSON.stringify(n.recipients || []).replace(/'/g, "\\'");
-
-                    table.innerHTML += `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="p-2 text-gray-400 whitespace-nowrap">${dateStr}</td>
-                            <td class="p-2">
-                                <p class="font-bold text-gray-800 leading-tight">${n.title}</p>
-                                <p class="text-[10px] text-gray-500 truncate max-w-[150px] sm:max-w-[200px] mt-0.5">${n.body}</p>
-                            </td>
-                            <td class="p-2 text-right whitespace-nowrap">
-                                <div class="flex flex-col items-end gap-1">
-                                    <button onclick="resendNotification('${safeTitle}', '${safeBody}')" class="text-[10px] text-brand hover:underline">Düzenle/Tekrar</button>
-                                    <button onclick="deleteNotificationFromAll('${doc.id}', ${recipientsJson})" class="text-[10px] text-red-500 hover:underline">Tamamen Sil</button>
-                                </div>
-                            </td>
-                        </tr>`;
-                });
-            });
-        }
+        
 
         function resendNotification(title, body) {
             document.getElementById('notifTitle').value = title;
@@ -1422,26 +1374,67 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        async function deleteNotificationFromAll(notifId, recipients) {
-            if (!confirm("Bu bildirimi tüm kullanıcıların gelen kutusundan ve sistemden tamamen silmek istediğinize emin misiniz?")) return;
-
-            try {
-                const batch = db.batch();
-                // Merkezi sistemden sil
-                batch.delete(db.collection("notifications").doc(notifId));
-                
-                // Gönderilen kullanıcıların kutularından sil
-                recipients.forEach(userId => {
-                    batch.delete(db.collection("users").doc(userId).collection("notifications").doc(notifId));
-                });
-
-                await batch.commit();
-                loadAdminNotificationHistory();
-                alert("Bildirim her yerden silindi.");
-            } catch(error) {
-                alert("Silme hatası: " + error.message);
-            }
+        // 1. TABLO YÜKLEME FONKSİYONUNU GÜNCELLE
+function loadAdminNotificationHistory() {
+    db.collection("notifications").orderBy("createdAt", "desc").get().then(snapshot => {
+        const table = document.getElementById('adminNotifTable');
+        table.innerHTML = '';
+        if(snapshot.empty) {
+            table.innerHTML = '<tr><td colspan="3" class="p-2 text-center text-gray-400">Henüz gönderilmiş bildirim yok.</td></tr>';
+            return;
         }
+        
+        snapshot.forEach(doc => {
+            const n = doc.data();
+            const dateStr = n.createdAt ? new Date(n.createdAt.toDate()).toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Az Önce';
+            
+            const safeTitle = n.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeBody = n.body.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+
+            table.innerHTML += `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="p-2 text-gray-400 whitespace-nowrap">${dateStr}</td>
+                    <td class="p-2">
+                        <p class="font-bold text-gray-800 leading-tight">${n.title}</p>
+                        <p class="text-[10px] text-gray-500 truncate max-w-[150px] sm:max-w-[200px] mt-0.5">${n.body}</p>
+                    </td>
+                    <td class="p-2 text-right whitespace-nowrap">
+                        <div class="flex flex-col items-end gap-1">
+                            <button onclick="resendNotification('${safeTitle}', '${safeBody}')" class="text-[10px] text-brand hover:underline">Düzenle/Tekrar</button>
+                            <!-- ÇÖZÜM: Sadece doc.id gönderiyoruz, json tırnak hatalarını ortadan kaldırdık -->
+                            <button onclick="deleteNotificationFromAll('${doc.id}')" class="text-[10px] text-red-500 hover:underline">Tamamen Sil</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    });
+}
+
+// 2. SİLME FONKSİYONUNU GÜNCELLE
+async function deleteNotificationFromAll(notifId) {
+    if (!confirm("Bu bildirimi tüm kullanıcıların gelen kutusundan ve sistemden tamamen silmek istediğinize emin misiniz?")) return;
+
+    try {
+        // Önce merkezi bildirimi bulup kime gönderildiğini öğreniyoruz
+        const notifDoc = await db.collection("notifications").doc(notifId).get();
+        const recipients = notifDoc.exists ? (notifDoc.data().recipients || []) : [];
+        
+        const batch = db.batch();
+        // Merkezi sistemden sil
+        batch.delete(db.collection("notifications").doc(notifId));
+        
+        // Gönderilen kullanıcıların kutularından sil
+        recipients.forEach(userId => {
+            batch.delete(db.collection("users").doc(userId).collection("notifications").doc(notifId));
+        });
+
+        await batch.commit();
+        loadAdminNotificationHistory();
+        alert("Bildirim her yerden silindi.");
+    } catch(error) {
+        alert("Silme hatası: " + error.message);
+    }
+}
 
         window.onload = () => {
             firebase.auth().onAuthStateChanged((user) => {
