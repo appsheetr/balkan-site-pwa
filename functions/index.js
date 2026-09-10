@@ -1,9 +1,9 @@
-const functions = require('firebase-functions/v1'); // V1 KESİN BELİRTİLDİ
+const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
-// YARDIMCI FONKSİYON: Tüm kullanıcılara hem Zil İkonu hem de Telefon Push Bildirimi Gönderir
-async function sendNotificationToAll(title, body) {
+// YARDIMCI FONKSİYON: Tüm kullanıcılara Push ve Uygulama İçi Bildirim Gönderir (YENİ: type ve targetId eklendi)
+async function sendNotificationToAll(title, body, type = 'general', targetId = '') {
     const usersSnapshot = await admin.firestore().collection('users').where('isApproved', '==', true).get();
     const tokens = [];
     const batch = admin.firestore().batch();
@@ -14,11 +14,12 @@ async function sendNotificationToAll(title, body) {
             tokens.push(userData.fcmToken);
         }
 
-        // Uygulama İçi (Zil İkonu) Bildirimine Yazma
         const userNotifRef = admin.firestore().collection('users').doc(doc.id).collection('notifications').doc();
         batch.set(userNotifRef, {
             title: title,
             body: body,
+            type: type,          // Hangi sekmeye gidecek (Örn: announcements, finance)
+            targetId: targetId,  // Hangi belgeyi açacak (Örn: Duyuru ID'si)
             isRead: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -29,10 +30,7 @@ async function sendNotificationToAll(title, body) {
     if (tokens.length > 0) {
         const message = {
             tokens: tokens,
-            notification: {
-                title: title,
-                body: body,
-            },
+            notification: { title: title, body: body },
             webpush: {
                 headers: { Urgency: "high" },
                 notification: {
@@ -46,15 +44,14 @@ async function sendNotificationToAll(title, body) {
         };
 
         try {
-            const response = await admin.messaging().sendEachForMulticast(message);
-            console.log("Otomatik bildirimler başarıyla gönderildi:", response.successCount);
+            await admin.messaging().sendEachForMulticast(message);
         } catch (error) {
             console.error("Otomatik bildirim hatası:", error);
         }
     }
 }
 
-// 1. MANUEL BİLDİRİM (Admin Panelinden Seçili Kişilere Gönderilen)
+// 1. MANUEL BİLDİRİM
 exports.onManualNotification = functions.firestore
     .document('notifications/{docId}')
     .onCreate(async (snap, context) => {
@@ -78,6 +75,8 @@ exports.onManualNotification = functions.firestore
                 batch.set(userNotifRef, {
                     title: notificationTitle,
                     body: notificationBody,
+                    type: 'manual', // Sadece okunur, yönlendirme yapmaz
+                    targetId: '',
                     isRead: false,
                     createdAt: admin.firestore.FieldValue.serverTimestamp()
                 });
@@ -100,40 +99,37 @@ exports.onManualNotification = functions.firestore
                     }
                 }
             };
-            try {
-                await admin.messaging().sendEachForMulticast(message);
-            } catch (err) {
-                console.error("Manuel bildirim Push hatası:", err);
-            }
+            try { await admin.messaging().sendEachForMulticast(message); } catch (err) {}
         }
         return null;
     });
 
-// 2. YENİ DUYURU EKLENDİĞİNDE OTOMATİK TETİKLE
+// 2. YENİ DUYURU
 exports.onNewAnnouncement = functions.firestore
     .document('announcements/{docId}')
     .onCreate(async (snap, context) => {
         const data = snap.data();
-        await sendNotificationToAll("📣 " + (data.title || "Yeni Duyuru"), data.content || "Sitemizde yeni bir duyuru yayınlandı.");
+        // İSTEDİĞİN GİBİ: Başlık sabit "Yeni Duyuru", içerik kendi başlığı oldu
+        await sendNotificationToAll("📣 Yeni Duyuru", data.title || "Sitemizde yeni bir duyuru yayınlandı.", "announcements", context.params.docId);
         return null;
     });
 
-// 3. YENİ FİNANS EKLENDİĞİNDE OTOMATİK TETİKLE
+// 3. YENİ FİNANS
 exports.onNewFinance = functions.firestore
     .document('finance/{docId}')
     .onCreate(async (snap, context) => {
         const data = snap.data();
         const typeLabel = data.type === 'Gelir' ? 'Gelir Eklendi' : 'Gider Eklendi';
         const body = `${data.description} (${data.amount} ₺)`;
-        await sendNotificationToAll(`💰 ${typeLabel}`, body);
+        await sendNotificationToAll(`💰 ${typeLabel}`, body, "finance", context.params.docId);
         return null;
     });
 
-// 4. YENİ YÖNETİM KARARI EKLENDİĞİNDE OTOMATİK TETİKLE
+// 4. YENİ YÖNETİM KARARI
 exports.onNewDecision = functions.firestore
     .document('decisions/{docId}')
     .onCreate(async (snap, context) => {
         const data = snap.data();
-        await sendNotificationToAll("⚖️ Yeni Yönetim Kararı", data.title || "Sitemiz için yeni bir karar alındı.");
+        await sendNotificationToAll("⚖️ Yeni Yönetim Kararı", data.title || "Sitemiz için yeni bir karar alındı.", "decisions", context.params.docId);
         return null;
     });

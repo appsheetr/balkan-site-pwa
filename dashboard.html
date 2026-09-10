@@ -901,75 +901,109 @@ document.addEventListener('touchend', e => {
             }, 300);
         }
 
-        function startNotificationListener() {
-            if (!currentUserId) return;
-            if (notifUnsubscribe) notifUnsubscribe();
+        // YENİ: Bildirime tıklandığında yönlendirme yapan fonksiyon
+function handleNotificationClick(notifId, type, targetId) {
+    // 1. Tıklanan bildirimi sessizce "Okundu" işaretle
+    markNotificationAsRead(notifId);
 
-            notifUnsubscribe = db.collection("users").doc(currentUserId).collection("notifications")
-                .orderBy("createdAt", "desc").limit(30)
-                .onSnapshot(snapshot => {
-                    const listContainer = document.getElementById('notificationList');
-                    const badge = document.getElementById('notifBadge');
-                    const countText = document.getElementById('notifCountText');
-                    
-                    if (snapshot.empty) {
-                        listContainer.innerHTML = `
-                            <div class="flex flex-col items-center justify-center p-8 text-center h-full opacity-60">
-                                <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                <p class="text-sm font-medium text-slate-500">Şu an yeni bildiriminiz yok.</p>
-                            </div>`;
-                        badge.classList.add('hidden');
-                        badge.classList.remove('flex');
-                        countText.innerText = '0 Yeni';
-                        return;
-                    }
+    // 2. Bildirim Paneli (Drawer) Kapat
+    const panel = document.getElementById('notificationPanel');
+    if (!panel.classList.contains('translate-x-full')) {
+        toggleNotificationPanel();
+    }
 
-                    listContainer.innerHTML = '';
-                    let unreadCount = 0;
-
-                    snapshot.forEach(doc => {
-                        const notif = doc.data();
-                        if (!notif.isRead) unreadCount++;
-
-                        const isReadClass = notif.isRead ? 'opacity-60 bg-transparent border-transparent' : 'bg-white border-brand/20 shadow-sm border-l-[3px] border-l-brand';
-                        const timeStr = notif.createdAt ? new Date(notif.createdAt.toDate()).toLocaleDateString('tr-TR', { hour: '2-digit', minute:'2-digit'}) : 'Az önce';
-                        
-                        // Metnin uzunluğunu kontrol et
-                        const isLongText = notif.body && notif.body.length > 80;
-                        const safeTitle = notif.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                        const safeBody = notif.body.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
-
-                        listContainer.innerHTML += `
-                            <div class="relative flex flex-col p-3 rounded-xl border border-slate-100 transition-all ${isReadClass}">
-                                <div class="flex items-start justify-between gap-2">
-                                    <h5 class="text-sm font-bold text-ink leading-tight">${notif.title}</h5>
-                                    ${!notif.isRead ? `
-                                    <button onclick="markNotificationAsRead('${doc.id}')" class="shrink-0 text-brand p-1 bg-brand-light rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    </button>` : ''}
-                                </div>
-                                <p class="text-[11px] text-slate-500 leading-relaxed mt-1 line-clamp-2 break-all whitespace-pre-wrap">${safeBody}</p>
-                                ${isLongText ? `
-                                <button onclick="openNotifDetailModal('${safeTitle}', '${safeBody}', '${timeStr}')" class="text-[10px] font-bold text-brand hover:underline mt-1 text-left w-fit">
-                                    Devamını Oku...
-                                </button>` : ''}
-                                <span class="text-[9px] font-semibold text-slate-400 mt-2 block uppercase tracking-wider">${timeStr}</span>
-                            </div>
-                        `;
-                    });
-
-                    if (unreadCount > 0) {
-                        badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
-                        badge.classList.remove('hidden');
-                        badge.classList.add('flex');
-                        countText.innerText = `${unreadCount} Yeni`;
-                    } else {
-                        badge.classList.add('hidden');
-                        badge.classList.remove('flex');
-                        countText.innerText = `Tümü Okundu`;
-                    }
-                });
+    // 3. Pusulaya (Type) göre ilgili menü sekmesini aç
+    if (type === 'announcements') {
+        switchTab('announcements');
+        // Eğer bu bir duyuruysa ve sistemde o duyuru varsa, direkt Pop-up detayını aç
+        if (targetId && window.announcementsMap && window.announcementsMap[targetId]) {
+            setTimeout(() => openAnnouncementModal(targetId), 300);
         }
+    } else if (type === 'finance') {
+        switchTab('finance');
+    } else if (type === 'decisions') {
+        switchTab('decisions');
+    }
+}
+
+// GÜNCELLENMİŞ CANLI DİNLEYİCİ
+function startNotificationListener() {
+    if (!currentUserId) return;
+    if (notifUnsubscribe) notifUnsubscribe();
+
+    notifUnsubscribe = db.collection("users").doc(currentUserId).collection("notifications")
+        .orderBy("createdAt", "desc").limit(30)
+        .onSnapshot(snapshot => {
+            const listContainer = document.getElementById('notificationList');
+            const badge = document.getElementById('notifBadge');
+            const countText = document.getElementById('notifCountText');
+            
+            if (snapshot.empty) {
+                listContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 text-center h-full opacity-60">
+                        <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <p class="text-sm font-medium text-slate-500">Şu an yeni bildiriminiz yok.</p>
+                    </div>`;
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+                countText.innerText = '0 Yeni';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            let unreadCount = 0;
+
+            snapshot.forEach(doc => {
+                const notif = doc.data();
+                if (!notif.isRead) unreadCount++;
+
+                const isReadClass = notif.isRead ? 'opacity-60 bg-transparent border-transparent' : 'bg-white border-brand/20 shadow-sm border-l-[3px] border-l-brand';
+                const timeStr = notif.createdAt ? new Date(notif.createdAt.toDate()).toLocaleDateString('tr-TR', { hour: '2-digit', minute:'2-digit'}) : 'Az önce';
+                
+                const isLongText = notif.body && notif.body.length > 80;
+                const safeTitle = notif.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeBody = notif.body.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+
+                // Yönlendirme Pusulası Kontrolü
+                const notifType = notif.type || 'general';
+                const notifTargetId = notif.targetId || '';
+                const isRoutable = (notifType === 'announcements' || notifType === 'finance' || notifType === 'decisions');
+                
+                // Eğer tıklandığında bir yere gidecekse tıklanabilir özellik ve imleç (cursor) ekle
+                const clickEvent = isRoutable ? `onclick="handleNotificationClick('${doc.id}', '${notifType}', '${notifTargetId}')"` : '';
+                const cursorClass = isRoutable ? 'cursor-pointer hover:bg-slate-50' : '';
+
+                listContainer.innerHTML += `
+                    <div class="relative flex flex-col p-3 rounded-xl border border-slate-100 transition-all ${isReadClass} ${cursorClass}" ${clickEvent}>
+                        <div class="flex items-start justify-between gap-2">
+                            <h5 class="text-sm font-bold text-ink leading-tight">${notif.title}</h5>
+                            ${!notif.isRead ? `
+                            <button onclick="event.stopPropagation(); markNotificationAsRead('${doc.id}')" class="shrink-0 text-brand p-1 bg-brand-light rounded-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </button>` : ''}
+                        </div>
+                        <p class="text-[11px] text-slate-500 leading-relaxed mt-1 line-clamp-2 break-all whitespace-pre-wrap">${notif.body}</p>
+                        ${isLongText ? `
+                        <button onclick="event.stopPropagation(); openNotifDetailModal('${safeTitle}', '${safeBody}', '${timeStr}')" class="text-[10px] font-bold text-brand hover:underline mt-1 text-left w-fit relative z-10">
+                            Devamını Oku...
+                        </button>` : ''}
+                        <span class="text-[9px] font-semibold text-slate-400 mt-2 block uppercase tracking-wider">${timeStr}</span>
+                    </div>
+                `;
+            });
+
+            if (unreadCount > 0) {
+                badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+                countText.innerText = `${unreadCount} Yeni`;
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+                countText.innerText = `Tümü Okundu`;
+            }
+        });
+}
 
         async function requestNotificationPermission() {
             if (!currentUserId) return alert("Lütfen önce giriş işleminin tamamlanmasını bekleyin.");
