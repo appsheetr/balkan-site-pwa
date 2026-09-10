@@ -133,7 +133,7 @@
             <div class="my-4 border-t border-blue-800"></div>
 
             <button onclick="switchSection('settings')" id="nav-settings" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37-2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 Ayarlar
             </button>
         </nav>
@@ -215,62 +215,43 @@
                 </section>
 
                 <!-- SECTION: RESIDENTS -->
-<section id="section-residents" class="hidden">
-    
-    <!-- YENİ EKLENEN: SAKİN DÜZENLEME FORMU (Varsayılan olarak gizlidir) -->
-    <div id="residentEditFormContainer" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-gray-800">Sakin Bilgilerini Düzenle</h3>
-            <button type="button" onclick="cancelEditResident()" class="text-xs text-gray-500 hover:text-gray-800 underline">İptal Et</button>
-        </div>
-        <form id="residentEditForm" onsubmit="event.preventDefault(); handleUpdateResident();">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ad Soyad</label>
-                    <input type="text" id="editResFullName" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                    <input type="text" id="editResPhone" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Blok No</label>
-                    <select id="editResBlock" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
-                        <option value="4A">4A</option>
-                        <option value="4A-1">4A-1</option>
-                        <option value="4B">4B</option>
-                        <option value="4B-1">4B-1</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Daire No</label>
-                    <input type="number" id="editResApt" min="1" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Oturum Durumu</label>
-                    <select id="editResStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
-                        <option value="Malik">Malik</option>
-                        <option value="Kiracı">Kiracı</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Meslek</label>
-                    <input type="text" id="editResJob" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand">
-                </div>
-            </div>
-            <button type="submit" id="editResSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2 px-6 rounded-lg transition w-full sm:w-auto">Bilgileri Güncelle</button>
-        </form>
-    </div>
+                <section id="section-residents" class="hidden">
+                    <div id="residentEditFormContainer" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-800">Sakin Bilgilerini Düzenle</h3>
+                            <button type="button" onclick="cancelEditResident()" class="text-xs text-gray-500 hover:text-gray-800 underline">İptal Et</button>
+                        </div>
+                        <form id="residentEditForm" onsubmit="event.preventDefault(); handleUpdateResident();">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Ad Soyad</label><input type="text" id="editResFullName" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Telefon</label><input type="text" id="editResPhone" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Blok No</label>
+                                    <select id="editResBlock" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                                        <option value="4A">4A</option><option value="4A-1">4A-1</option><option value="4B">4B</option><option value="4B-1">4B-1</option>
+                                    </select>
+                                </div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Daire No</label><input type="number" id="editResApt" min="1" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Oturum Durumu</label>
+                                    <select id="editResStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                                        <option value="Malik">Malik</option><option value="Kiracı">Kiracı</option>
+                                    </select>
+                                </div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-1">Meslek</label><input type="text" id="editResJob" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand"></div>
+                            </div>
+                            <button type="submit" id="editResSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2 px-6 rounded-lg transition w-full sm:w-auto">Bilgileri Güncelle</button>
+                        </form>
+                    </div>
 
-    <!-- MEVCUT LİSTE ALANI -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-5 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="font-bold text-gray-800">Kayıtlı Tüm Site Sakinleri (Blok Gruplu)</h3>
-            <span id="approvedCountBadge" class="bg-blue-100 text-brand font-semibold text-xs px-2.5 py-1 rounded-full">0 Sakin</span>
-        </div>
-        <div class="p-6 space-y-8" id="residentsGroupContainer"></div>
-    </div>
-</section>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800">Kayıtlı Tüm Site Sakinleri</h3>
+                            <span id="approvedCountBadge" class="bg-blue-100 text-brand font-semibold text-xs px-2.5 py-1 rounded-full">0 Sakin</span>
+                        </div>
+                        <div class="p-6 space-y-8" id="residentsGroupContainer"></div>
+                    </div>
+                </section>
 
                 <!-- SECTION: FINANCE -->
                 <section id="section-finance" class="hidden">
@@ -279,7 +260,7 @@
                             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                 <div class="flex justify-between items-center mb-4">
                                     <h3 class="font-bold text-gray-800" id="financeFormTitle">Yeni İşlem Ekle</h3>
-                                    <button type="button" onclick="resetFinanceForm()" id="finCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et / Yeni Ekle</button>
+                                    <button type="button" onclick="resetFinanceForm()" id="finCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et</button>
                                 </div>
                                 <form id="financeForm" onsubmit="event.preventDefault(); handleAddTransaction();">
                                     <div class="mb-3">
@@ -340,14 +321,13 @@
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-gray-800" id="annFormTitle">Yeni Duyuru Yayınla</h3>
-                            <button type="button" onclick="resetAnnouncementForm()" id="annCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et / Yeni Ekle</button>
+                            <button type="button" onclick="resetAnnouncementForm()" id="annCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et</button>
                         </div>
                         <form id="announcementForm" onsubmit="event.preventDefault(); handleAddAnnouncement();">
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Duyuru Başlığı</label>
                                 <input type="text" id="annTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
                             </div>
-                            <!-- ... Bitiş Tarihi ve Açıklama alanları aynı kalacak ... -->
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi (Bu tarihten sonra pasif olur)</label>
                                 <input type="date" id="annEndDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
@@ -359,13 +339,11 @@
                             <div class="mb-5">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Görsel (Opsiyonel)</label>
                                 <input type="file" id="annImage" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-brand hover:file:bg-blue-100 border border-gray-300 rounded-lg outline-none bg-white">
-                                <!-- YENİ EKLENEN SATIR -->
-                                <p id="annFileHint" class="text-xs text-gray-400 mt-1 hidden">Yeni görsel seçerseniz eskisi silinir. Boş bırakırsanız eski görsel korunur.</p>
+                                <p id="annFileHint" class="text-xs text-gray-400 mt-1 hidden">Yeni görsel seçerseniz eskisi silinir.</p>
                             </div>
                             <button type="submit" id="annSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2 px-6 rounded-lg transition">Duyuruyu Yayınla</button>
                         </form>
                     </div>
-
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-5 border-b border-gray-100">
                             <h3 class="font-bold text-gray-800">Yayınlanan Duyurular</h3>
@@ -374,44 +352,38 @@
                     </div>
                 </section>
 
-                <!-- SECTION: DECISIONS (YÖNETİM KARARLARI & KATILIMCILAR) -->
+                <!-- SECTION: DECISIONS -->
                 <section id="section-decisions" class="hidden">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-gray-800" id="decisionFormTitle">Yeni Karar Ekle</h3>
-                            <button type="button" onclick="resetDecisionForm()" id="decCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et / Yeni Ekle</button>
+                            <button type="button" onclick="resetDecisionForm()" id="decCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et</button>
                         </div>
                         <form id="decisionForm" onsubmit="event.preventDefault(); handleAddOrUpdateDecision();">
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Başlığı / Konusu</label>
-                                <input type="text" id="decTitle" placeholder="Örn: 2026 Yılı Olağanüstü Genel Kurul Kararı" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Başlığı</label>
+                                <input type="text" id="decTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Metni / İçerik</label>
-                                <textarea id="decContent" rows="4" placeholder="Alınan kararları satır satır yazabilirsiniz..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar İçeriği</label>
+                                <textarea id="decContent" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></textarea>
                             </div>
-                            
-                            <!-- KATILIMCILAR (ÇOKLU SEÇİM) EKLENDİ -->
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Karara Katılan Sakinler (Çoklu Seçim)</label>
-                                <div id="decParticipantsList" class="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1 bg-gray-50">
-                                    <p class="text-xs text-gray-400 p-1">Sakinler yükleniyor...</p>
-                                </div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karara Katılan Sakinler</label>
+                                <div id="decParticipantsList" class="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1 bg-gray-50"></div>
                                 <p class="text-xs text-gray-500 mt-1">Seçilen katılımcı sayısı: <span id="decParticipantCount" class="font-bold text-brand">0</span></p>
                             </div>
-
                             <div class="mb-5">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Belgesi (PDF veya Resim - Opsiyonel)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Karar Belgesi (Opsiyonel)</label>
                                 <input type="file" id="decFile" accept="image/*, application/pdf" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-brand hover:file:bg-blue-100 border border-gray-300 rounded-lg outline-none bg-white">
-                                <p id="decFileHint" class="text-xs text-gray-400 mt-1 hidden">Yeni belge seçerseniz eski belge silinir/değişir. Boş bırakırsanız eski belge korunur.</p>
+                                <p id="decFileHint" class="text-xs text-gray-400 mt-1 hidden">Yeni belge seçerseniz eskisi silinir.</p>
                             </div>
                             <button type="submit" id="decSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2 px-6 rounded-lg transition">Kararı Kaydet</button>
                         </form>
                     </div>
-
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-5 border-b border-gray-100">
-                            <h3 class="font-bold text-gray-800">Sisteme Kayıtlı Yönetim Kararları</h3>
+                            <h3 class="font-bold text-gray-800">Sisteme Kayıtlı Kararlar</h3>
                         </div>
                         <div class="p-5 space-y-4" id="decisionsList"></div>
                     </div>
@@ -427,22 +399,54 @@
                     </div>
                 </section>
 
-                <!-- SECTION: NOTIFICATIONS -->
+                <!-- YENİLENEN SECTION: NOTIFICATIONS (Manuel Bildirim Gönderimi) -->
                 <section id="section-notifications" class="hidden">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-2xl">
-                        <h3 class="font-bold text-gray-800 mb-4">Site Sakinlerine Manuel Bildirim Gönder</h3>
-                        <p class="text-xs text-gray-500 mb-6">Buradan göndereceğiniz bildirim, uygulamada bildirim izni vermiş tüm site sakinlerinin telefonuna iletilecektir.</p>
-                        <form onsubmit="event.preventDefault(); handleSendManualNotification();">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        
+                        <!-- Bildirim Gönderme Formu -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-800 mb-2">Manuel Bildirim Gönder</h3>
+                            <p class="text-xs text-gray-500 mb-4">Seçtiğiniz kullanıcılara hem uygulama içi hem de Push bildirim gönderilir.</p>
+                            
+                            <!-- Kullanıcı Seçimi -->
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-sm font-medium text-gray-700">Alıcıları Seçin</label>
+                                    <button type="button" onclick="toggleSelectAllUsers(this)" class="text-[11px] font-bold text-brand hover:underline">Tümünü Seç</button>
+                                </div>
+                                <div id="userSelectList" class="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1 bg-gray-50">
+                                    <p class="text-xs text-gray-400 p-1">Sakinler yükleniyor...</p>
+                                </div>
+                            </div>
+
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Bildirim Başlığı</label>
-                                <input type="text" id="notifTitle" placeholder="Örn: Otopark Temizliği Hakkında" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                                <input type="text" id="notifTitle" placeholder="Örn: Otopark Temizliği" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
                             </div>
                             <div class="mb-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Bildirim Mesajı</label>
-                                <textarea id="notifBody" rows="3" placeholder="Mesajınızı buraya yazın..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></textarea>
+                                <textarea id="notifBody" rows="3" placeholder="Detaylı mesaj..." class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand" required></textarea>
                             </div>
-                            <button type="submit" id="notifSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2.5 px-6 rounded-lg transition w-full sm:w-auto">Bildirimi Herkese Gönder</button>
-                        </form>
+                            <button onclick="sendManualNotification()" id="notifSubmitBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-medium py-2.5 rounded-lg transition">Bildirimi Gönder</button>
+                        </div>
+
+                        <!-- Geçmiş Bildirimler Tablosu -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full max-h-[600px]">
+                            <h3 class="font-bold text-gray-800 mb-4">Geçmiş Bildirimler</h3>
+                            <div class="overflow-x-auto flex-1 overflow-y-auto">
+                                <table class="w-full text-xs text-left text-gray-500">
+                                    <thead class="bg-gray-50 text-[10px] uppercase font-semibold text-gray-400">
+                                        <tr>
+                                            <th class="p-2">Tarih</th>
+                                            <th class="p-2">Başlık / İçerik</th>
+                                            <th class="p-2 text-right">İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminNotifTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 </section>
 
@@ -483,7 +487,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- ŞİFRE GÜVENLİĞİ: SHA-256 + SALT İLE HASHLEME ---
         function generateSalt() {
             const arr = new Uint8Array(16);
             crypto.getRandomValues(arr);
@@ -554,10 +557,14 @@
             if(sectionId === 'announcements') loadAnnouncements();
             if(sectionId === 'decisions') {
                 loadDecisions();
-                populateDecisionParticipants(); // SAKİNLERİ MULTI-SELECT İÇİN GETİR
+                populateDecisionParticipants();
             }
             if(sectionId === 'complaints') loadComplaints();
             if(sectionId === 'dashboard') loadDashboardStats();
+            if(sectionId === 'notifications') {
+                loadUsersForNotification();
+                loadAdminNotificationHistory();
+            }
         }
 
         function toggleSidebar() {
@@ -617,329 +624,269 @@
             }
         }
 
-        // --- SAKİN DÜZENLEME VE GÜNCELLEME FONKSİYONLARI ---
-function editResident(id, fullName, phone, block, apt, status, job) {
-    editingResidentId = id;
-    document.getElementById('editResFullName').value = fullName;
-    document.getElementById('editResPhone').value = phone;
-    document.getElementById('editResBlock').value = block;
-    document.getElementById('editResApt').value = apt;
-    document.getElementById('editResStatus').value = status;
-    document.getElementById('editResJob').value = job || '';
+        function editResident(id, fullName, phone, block, apt, status, job) {
+            editingResidentId = id;
+            document.getElementById('editResFullName').value = fullName;
+            document.getElementById('editResPhone').value = phone;
+            document.getElementById('editResBlock').value = block;
+            document.getElementById('editResApt').value = apt;
+            document.getElementById('editResStatus').value = status;
+            document.getElementById('editResJob').value = job || '';
 
-    const formContainer = document.getElementById('residentEditFormContainer');
-    formContainer.classList.remove('hidden');
-    
-    // Tarayıcıdaki kaydırma alanını bulup formu yumuşakça ekranın başına odaklar
-    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function cancelEditResident() {
-    editingResidentId = null;
-    document.getElementById('residentEditForm').reset();
-    document.getElementById('residentEditFormContainer').classList.add('hidden');
-}
-
-async function handleUpdateResident() {
-    if (!editingResidentId) return;
-
-    const fullName = document.getElementById('editResFullName').value;
-    const phone = document.getElementById('editResPhone').value;
-    const block = document.getElementById('editResBlock').value;
-    const apartment = document.getElementById('editResApt').value;
-    const status = document.getElementById('editResStatus').value;
-    const job = document.getElementById('editResJob').value;
-    const btn = document.getElementById('editResSubmitBtn');
-
-    btn.disabled = true;
-    btn.innerText = "Güncelleniyor...";
-
-    try {
-        await db.collection("users").doc(editingResidentId).update({
-            fullName,
-            phone,
-            block,
-            apartment,
-            status,
-            job
-        });
-
-        alert("Sakin bilgileri başarıyla güncellendi.");
-        cancelEditResident();
-        loadApprovedResidentsByBlocks(); // Listeyi yenile
-    } catch (error) {
-        alert("Güncelleme hatası: " + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Bilgileri Güncelle";
-    }
-}
-
-// --- GÜNCELLENMİŞ SAKİN LİSTELEME FONKSİYONU ---
-function loadApprovedResidentsByBlocks() {
-    const container = document.getElementById('residentsGroupContainer');
-    const badge = document.getElementById('approvedCountBadge');
-    container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
-
-    db.collection("users").where("isApproved", "==", true).get().then(snapshot => {
-        container.innerHTML = '';
-        badge.innerText = `${snapshot.size} Sakin`;
-
-        if(snapshot.empty) {
-            container.innerHTML = '<p class="text-sm text-gray-500 font-medium">Henüz onaylanmış site sakini bulunmuyor.</p>';
-            return;
+            const formContainer = document.getElementById('residentEditFormContainer');
+            formContainer.classList.remove('hidden');
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        const blocks = ["4A", "4A-1", "4B", "4B-1"];
-        const groupedData = { "4A": [], "4A-1": [], "4B": [], "4B-1": [] };
+        function cancelEditResident() {
+            editingResidentId = null;
+            document.getElementById('residentEditForm').reset();
+            document.getElementById('residentEditFormContainer').classList.add('hidden');
+        }
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            data.id = doc.id;
-            if (groupedData[data.block]) {
-                groupedData[data.block].push(data);
-            } else {
-                groupedData[data.block] = [data];
+        async function handleUpdateResident() {
+            if (!editingResidentId) return;
+
+            const fullName = document.getElementById('editResFullName').value;
+            const phone = document.getElementById('editResPhone').value;
+            const block = document.getElementById('editResBlock').value;
+            const apartment = document.getElementById('editResApt').value;
+            const status = document.getElementById('editResStatus').value;
+            const job = document.getElementById('editResJob').value;
+            const btn = document.getElementById('editResSubmitBtn');
+
+            btn.disabled = true;
+            btn.innerText = "Güncelleniyor...";
+
+            try {
+                await db.collection("users").doc(editingResidentId).update({
+                    fullName, phone, block, apartment, status, job
+                });
+                alert("Sakin bilgileri başarıyla güncellendi.");
+                cancelEditResident();
+                loadApprovedResidentsByBlocks(); 
+            } catch (error) {
+                alert("Güncelleme hatası: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Bilgileri Güncelle";
             }
-        });
+        }
 
-        blocks.forEach(blockName => {
-            const residentsInBlock = groupedData[blockName] || [];
-            
-            let blockHtml = `
-                <div class="border border-gray-200 rounded-2xl bg-gray-50/50 p-5">
-                    <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-200">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-brand text-white flex items-center justify-center font-bold text-sm">
-                                ${blockName}
-                            </div>
-                            <h4 class="font-bold text-lg text-gray-800">${blockName} Blok Sakinleri</h4>
-                        </div>
-                        <span class="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
-                            ${residentsInBlock.length} / 6 Daire Dolu
-                        </span>
-                    </div>
-            `;
+        function loadApprovedResidentsByBlocks() {
+            const container = document.getElementById('residentsGroupContainer');
+            const badge = document.getElementById('approvedCountBadge');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
 
-            if (residentsInBlock.length === 0) {
-                blockHtml += `<p class="text-xs text-gray-400 italic">Bu blokta henüz onaylanmış sakin bulunmuyor.</p>`;
-            } else {
-                residentsInBlock.sort((a, b) => parseInt(a.apartment) - parseInt(b.apartment));
-                blockHtml += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`;
-                
-                residentsInBlock.forEach(res => {
-                    const safeFullName = (res.fullName || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safePhone = (res.phone || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safeJob = (res.job || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            db.collection("users").where("isApproved", "==", true).get().then(snapshot => {
+                container.innerHTML = '';
+                badge.innerText = `${snapshot.size} Sakin`;
 
-                    blockHtml += `
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition">
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="bg-blue-50 text-brand text-xs font-bold px-2 py-0.5 rounded border border-blue-100">Daire ${res.apartment}</span>
-                                    <span class="text-xs font-semibold px-2 py-0.5 rounded ${res.status === 'Malik' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${res.status}</span>
-                                </div>
-                                <h5 class="font-bold text-gray-800 text-base">${res.fullName}</h5>
-                                <p class="text-xs text-gray-500 mt-1">Meslek: ${res.job || 'Belirtilmedi'}</p>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                                <a href="tel:${res.phone}" class="text-xs font-semibold text-brand hover:underline flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                                    ${res.phone}
-                                </a>
-                                <div class="flex items-center gap-3">
-                                    <!-- YENİ EKLENEN DÜZENLE BUTONU -->
-                                    <button onclick="editResident('${res.id}', '${safeFullName}', '${safePhone}', '${res.block}', '${res.apartment}', '${res.status}', '${safeJob}')" title="Bilgileri Düzenle" class="text-gray-400 hover:text-brand transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <!-- SİL BUTONU -->
-                                    <button onclick="deleteResident('${res.id}')" title="Sakin Kaydını Sil" class="text-gray-400 hover:text-red-500 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500 font-medium">Henüz onaylanmış site sakini bulunmuyor.</p>';
+                    return;
+                }
+
+                const blocks = ["4A", "4A-1", "4B", "4B-1"];
+                const groupedData = { "4A": [], "4A-1": [], "4B": [], "4B-1": [] };
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    if (groupedData[data.block]) {
+                        groupedData[data.block].push(data);
+                    } else {
+                        groupedData[data.block] = [data];
+                    }
                 });
 
-                blockHtml += `</div>`;
-            }
+                blocks.forEach(blockName => {
+                    const residentsInBlock = groupedData[blockName] || [];
+                    let blockHtml = `
+                        <div class="border border-gray-200 rounded-2xl bg-gray-50/50 p-5">
+                            <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-200">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-brand text-white flex items-center justify-center font-bold text-sm">${blockName}</div>
+                                    <h4 class="font-bold text-lg text-gray-800">${blockName} Blok Sakinleri</h4>
+                                </div>
+                                <span class="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">${residentsInBlock.length} / 6 Daire Dolu</span>
+                            </div>
+                    `;
 
-            blockHtml += `</div>`;
-            container.innerHTML += blockHtml;
-        });
-    });
-}
+                    if (residentsInBlock.length === 0) {
+                        blockHtml += `<p class="text-xs text-gray-400 italic">Bu blokta henüz onaylanmış sakin bulunmuyor.</p>`;
+                    } else {
+                        residentsInBlock.sort((a, b) => parseInt(a.apartment) - parseInt(b.apartment));
+                        blockHtml += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`;
+                        residentsInBlock.forEach(res => {
+                            const safeFullName = (res.fullName || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            const safePhone = (res.phone || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            const safeJob = (res.job || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-function deleteResident(id) {
-    if(confirm("Bu sakinin kaydını tamamen silmek istediğinize emin misiniz?")) {
-        db.collection("users").doc(id).delete().then(() => {
-            alert("Sakin kaydı silindi.");
-            loadApprovedResidentsByBlocks();
-            loadDashboardStats();
-        }).catch(err => alert("Hata: " + err.message));
-    }
-}
-
-        
-
-        // --- FİNANS DÜZENLEME VE SIFIRLAMA FONKSİYONLARI ---
-function resetFinanceForm() {
-    editingFinanceId = null;
-    document.getElementById('financeForm').reset();
-    document.getElementById('financeFormTitle').innerText = "Yeni İşlem Ekle";
-    document.getElementById('finSubmitBtn').innerText = "İşlemi Kaydet";
-    document.getElementById('finCancelBtn').classList.add('hidden');
-    document.getElementById('finFileHint').classList.add('hidden');
-}
-
-function editFinanceRecord(id, type, amount, desc, collector) {
-    editingFinanceId = id;
-    document.getElementById('finType').value = type;
-    document.getElementById('finAmount').value = amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('finDesc').value = desc.replace(/\\'/g, "'").replace(/&quot;/g, '"');
-    document.getElementById('finCollector').value = collector.replace(/\\'/g, "'").replace(/&quot;/g, '"');
-    
-    document.getElementById('financeFormTitle').innerText = "İşlemi Düzenle";
-    document.getElementById('finSubmitBtn').innerText = "İşlemi Güncelle";
-    document.getElementById('finCancelBtn').classList.remove('hidden');
-    document.getElementById('finFileHint').classList.remove('hidden');
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// --- PARA BİRİMİ FORMATLAMA FONKSİYONLARI ---
-function formatCurrencyInput(input) {
-    let val = input.value.trim();
-    if (!val) return;
-    
-    let numericVal = 0;
-    // Eğer kullanıcı İngiliz stili 1500.50 gibi yazdıysa (virgül yok, tek nokta var)
-    if (val.indexOf(',') === -1 && val.indexOf('.') !== -1 && val.lastIndexOf('.') === val.indexOf('.')) {
-        numericVal = parseFloat(val);
-    } else {
-        // Türkçe format: Binlik ayırıcı noktaları sil, ondalık virgülü noktaya çevir
-        val = val.replace(/\./g, '').replace(',', '.');
-        numericVal = parseFloat(val);
-    }
-
-    if (!isNaN(numericVal)) {
-        // tr-TR ile formatla, her zaman 2 küsürat göster (Örn: 400 -> 400,00)
-        input.value = numericVal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-}
-
-function parseCurrencyValue(valStr) {
-    if (!valStr) return 0;
-    // Veritabanına kaydetmeden önce 1.500,25 metnini 1500.25 rakamına dönüştürür
-    let cleanStr = valStr.toString().replace(/\./g, '').replace(',', '.');
-    return parseFloat(cleanStr) || 0;
-}
-
-// --- GÜNCELLENMİŞ EKLEME / DÜZENLEME FONKSİYONU ---
-async function handleAddTransaction() {
-    const type = document.getElementById('finType').value;
-    const amount = parseCurrencyValue(document.getElementById('finAmount').value);
-    const desc = document.getElementById('finDesc').value;
-    const collector = document.getElementById('finCollector').value;
-    const fileInput = document.getElementById('finReceipt');
-    const submitBtn = document.getElementById('finSubmitBtn');
-
-    submitBtn.disabled = true;
-    submitBtn.innerText = "Kaydediliyor...";
-
-    try {
-        let receiptUrl = null; // Düzenlemede boş bırakılırsa null kalacak
-        if(fileInput.files.length > 0) {
-            submitBtn.innerText = "Belge Yükleniyor...";
-            receiptUrl = await uploadToCloudinary(fileInput.files[0]);
-        }
-
-        if (editingFinanceId) {
-            // GÜNCELLEME MODU
-            const updateData = { type, amount, description: desc, collector };
-            if (receiptUrl) updateData.receiptUrl = receiptUrl; // Sadece yeni dosya varsa değiştir
-
-            await db.collection("finance").doc(editingFinanceId).update(updateData);
-            alert("Finansal kayıt başarıyla güncellendi.");
-        } else {
-            // YENİ EKLEME MODU
-            await db.collection("finance").add({
-                type,
-                amount,
-                description: desc,
-                collector,
-                receiptUrl: receiptUrl || "",
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            blockHtml += `
+                                <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="bg-blue-50 text-brand text-xs font-bold px-2 py-0.5 rounded border border-blue-100">Daire ${res.apartment}</span>
+                                            <span class="text-xs font-semibold px-2 py-0.5 rounded ${res.status === 'Malik' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${res.status}</span>
+                                        </div>
+                                        <h5 class="font-bold text-gray-800 text-base">${res.fullName}</h5>
+                                        <p class="text-xs text-gray-500 mt-1">Meslek: ${res.job || 'Belirtilmedi'}</p>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                                        <a href="tel:${res.phone}" class="text-xs font-semibold text-brand hover:underline flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                            ${res.phone}
+                                        </a>
+                                        <div class="flex items-center gap-3">
+                                            <button onclick="editResident('${res.id}', '${safeFullName}', '${safePhone}', '${res.block}', '${res.apartment}', '${res.status}', '${safeJob}')" title="Bilgileri Düzenle" class="text-gray-400 hover:text-brand transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                            <button onclick="deleteResident('${res.id}')" title="Sakin Kaydını Sil" class="text-gray-400 hover:text-red-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        });
+                        blockHtml += `</div>`;
+                    }
+                    blockHtml += `</div>`;
+                    container.innerHTML += blockHtml;
+                });
             });
-            alert("Yeni finansal kayıt başarıyla eklendi.");
         }
 
-        resetFinanceForm();
-        loadFinanceData();
-        loadDashboardStats();
-
-    } catch (error) {
-        console.error("Finans işlemi hatası:", error);
-        alert("İşlem sırasında bir hata oluştu: " + error.message);
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = editingFinanceId ? "İşlemi Güncelle" : "İşlemi Kaydet";
-    }
-}
-
-// --- GÜNCELLENMİŞ TABLO YÜKLEME FONKSİYONU (DÜZENLE BUTONU EKLENDİ) ---
-function loadFinanceData() {
-    const tableBody = document.getElementById('financeTableBody');
-    tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Yükleniyor...</td></tr>';
-
-    db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
-        tableBody.innerHTML = '';
-        if(snapshot.empty) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Henüz finansal kayıt eklenmemiş.</td></tr>';
-            return;
+        function deleteResident(id) {
+            if(confirm("Bu sakinin kaydını tamamen silmek istediğinize emin misiniz?")) {
+                db.collection("users").doc(id).delete().then(() => {
+                    alert("Sakin kaydı silindi.");
+                    loadApprovedResidentsByBlocks();
+                    loadDashboardStats();
+                }).catch(err => alert("Hata: " + err.message));
+            }
         }
 
-        snapshot.forEach(doc => {
-            const f = doc.data();
-            const id = doc.id;
-            const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
-            const isIncome = f.type === 'Gelir';
-            const receiptBtn = f.receiptUrl 
-                ? `<a href="${f.receiptUrl}" target="_blank" class="inline-flex items-center text-brand hover:text-brand-dark" title="Makbuzu Gör">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                   </a>`
-                : '<span class="text-gray-300">-</span>';
+        function resetFinanceForm() {
+            editingFinanceId = null;
+            document.getElementById('financeForm').reset();
+            document.getElementById('financeFormTitle').innerText = "Yeni İşlem Ekle";
+            document.getElementById('finSubmitBtn').innerText = "İşlemi Kaydet";
+            document.getElementById('finCancelBtn').classList.add('hidden');
+            document.getElementById('finFileHint').classList.add('hidden');
+        }
 
-            // String değerlerdeki olası tırnak işaretlerini kaçırıyoruz ki HTML'i bozmasın
-            const safeDesc = f.description.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const safeCollector = f.collector.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        function editFinanceRecord(id, type, amount, desc, collector) {
+            editingFinanceId = id;
+            document.getElementById('finType').value = type;
+            document.getElementById('finAmount').value = amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('finDesc').value = desc.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+            document.getElementById('finCollector').value = collector.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+            document.getElementById('financeFormTitle').innerText = "İşlemi Düzenle";
+            document.getElementById('finSubmitBtn').innerText = "İşlemi Güncelle";
+            document.getElementById('finCancelBtn').classList.remove('hidden');
+            document.getElementById('finFileHint').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
-            tableBody.innerHTML += `
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-4 py-3">${dateStr}</td>
-                    <td class="px-4 py-3 font-medium text-gray-800">${f.description}<br><span class="text-xs text-gray-400">İşleyen: ${f.collector}</span></td>
-                    <td class="px-4 py-3"><span class="${isIncome ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-1 rounded text-xs font-semibold">${f.type}</span></td>
-                    <td class="px-4 py-3 text-center">${receiptBtn}</td>
-                    <td class="px-4 py-3 text-right font-bold ${isIncome ? 'text-green-600' : 'text-gray-900'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</td>
-                    <td class="px-4 py-3 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <!-- DÜZENLE BUTONU EKLENDİ -->
-                            <button onclick="editFinanceRecord('${id}', '${f.type}', ${f.amount}, '${safeDesc}', '${safeCollector}')" title="İşlemi Düzenle" class="text-gray-400 hover:text-brand transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </button>
-                            <!-- SİL BUTONU (Mevcut) -->
-                            <button onclick="deleteFinanceRecord('${id}')" title="İşlemi Sil" class="text-gray-400 hover:text-red-500 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-    });
-}
+        function formatCurrencyInput(input) {
+            let val = input.value.trim();
+            if (!val) return;
+            let numericVal = 0;
+            if (val.indexOf(',') === -1 && val.indexOf('.') !== -1 && val.lastIndexOf('.') === val.indexOf('.')) {
+                numericVal = parseFloat(val);
+            } else {
+                val = val.replace(/\./g, '').replace(',', '.');
+                numericVal = parseFloat(val);
+            }
+            if (!isNaN(numericVal)) {
+                input.value = numericVal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
 
-        
+        function parseCurrencyValue(valStr) {
+            if (!valStr) return 0;
+            let cleanStr = valStr.toString().replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleanStr) || 0;
+        }
+
+        async function handleAddTransaction() {
+            const type = document.getElementById('finType').value;
+            const amount = parseCurrencyValue(document.getElementById('finAmount').value);
+            const desc = document.getElementById('finDesc').value;
+            const collector = document.getElementById('finCollector').value;
+            const fileInput = document.getElementById('finReceipt');
+            const submitBtn = document.getElementById('finSubmitBtn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Kaydediliyor...";
+
+            try {
+                let receiptUrl = null; 
+                if(fileInput.files.length > 0) {
+                    submitBtn.innerText = "Belge Yükleniyor...";
+                    receiptUrl = await uploadToCloudinary(fileInput.files[0]);
+                }
+
+                if (editingFinanceId) {
+                    const updateData = { type, amount, description: desc, collector };
+                    if (receiptUrl) updateData.receiptUrl = receiptUrl; 
+                    await db.collection("finance").doc(editingFinanceId).update(updateData);
+                    alert("Finansal kayıt başarıyla güncellendi.");
+                } else {
+                    await db.collection("finance").add({
+                        type, amount, description: desc, collector,
+                        receiptUrl: receiptUrl || "",
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert("Yeni finansal kayıt başarıyla eklendi.");
+                }
+                resetFinanceForm();
+                loadFinanceData();
+                loadDashboardStats();
+            } catch (error) {
+                alert("İşlem sırasında bir hata oluştu: " + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = editingFinanceId ? "İşlemi Güncelle" : "İşlemi Kaydet";
+            }
+        }
+
+        function loadFinanceData() {
+            const tableBody = document.getElementById('financeTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Yükleniyor...</td></tr>';
+
+            db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
+                tableBody.innerHTML = '';
+                if(snapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Henüz finansal kayıt eklenmemiş.</td></tr>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const f = doc.data();
+                    const id = doc.id;
+                    const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
+                    const isIncome = f.type === 'Gelir';
+                    const receiptBtn = f.receiptUrl 
+                        ? `<a href="${f.receiptUrl}" target="_blank" class="inline-flex items-center text-brand hover:text-brand-dark" title="Makbuzu Gör"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg></a>`
+                        : '<span class="text-gray-300">-</span>';
+
+                    const safeDesc = f.description.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeCollector = f.collector.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+                    tableBody.innerHTML += `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-4 py-3">${dateStr}</td>
+                            <td class="px-4 py-3 font-medium text-gray-800">${f.description}<br><span class="text-xs text-gray-400">İşleyen: ${f.collector}</span></td>
+                            <td class="px-4 py-3"><span class="${isIncome ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'} px-2 py-1 rounded text-xs font-semibold">${f.type}</span></td>
+                            <td class="px-4 py-3 text-center">${receiptBtn}</td>
+                            <td class="px-4 py-3 text-right font-bold ${isIncome ? 'text-green-600' : 'text-gray-900'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="editFinanceRecord('${id}', '${f.type}', ${f.amount}, '${safeDesc}', '${safeCollector}')" title="İşlemi Düzenle" class="text-gray-400 hover:text-brand transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                    <button onclick="deleteFinanceRecord('${id}')" title="İşlemi Sil" class="text-gray-400 hover:text-red-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+            });
+        }
 
         function deleteFinanceRecord(id) {
             if(confirm("Bu finansal kaydı tamamen silmek istediğinize emin misiniz?")) {
@@ -951,149 +898,123 @@ function loadFinanceData() {
             }
         }
 
-        
-
-        // --- DUYURU DÜZENLEME VE SIFIRLAMA FONKSİYONLARI ---
-function resetAnnouncementForm() {
-    editingAnnouncementId = null;
-    document.getElementById('announcementForm').reset();
-    document.getElementById('annFormTitle').innerText = "Yeni Duyuru Yayınla";
-    document.getElementById('annSubmitBtn').innerText = "Duyuruyu Yayınla";
-    document.getElementById('annCancelBtn').classList.add('hidden');
-    document.getElementById('annFileHint').classList.add('hidden');
-}
-
-function editAnnouncement(id, title, content, endDate) {
-    editingAnnouncementId = id;
-    document.getElementById('annTitle').value = title;
-    document.getElementById('annContent').value = content.replace(/\\n/g, '\n');
-    document.getElementById('annEndDate').value = endDate || '';
-    
-    document.getElementById('annFormTitle').innerText = "Duyuruyu Düzenle";
-    document.getElementById('annSubmitBtn').innerText = "Duyuruyu Güncelle";
-    document.getElementById('annCancelBtn').classList.remove('hidden');
-    document.getElementById('annFileHint').classList.remove('hidden');
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// --- GÜNCELLENMİŞ EKLEME / DÜZENLEME FONKSİYONU ---
-async function handleAddAnnouncement() {
-    const title = document.getElementById('annTitle').value;
-    const content = document.getElementById('annContent').value;
-    const endDate = document.getElementById('annEndDate').value;
-    const imageInput = document.getElementById('annImage');
-    const btn = document.getElementById('annSubmitBtn');
-
-    if (!endDate) {
-        alert("Lütfen duyurunun pasife düşeceği bitiş tarihini seçin.");
-        return;
-    }
-
-    btn.disabled = true;
-    btn.innerText = "Kaydediliyor...";
-
-    try {
-        let imageUrl = null;
-        if(imageInput.files.length > 0) {
-            btn.innerText = "Görsel Yükleniyor...";
-            imageUrl = await uploadToCloudinary(imageInput.files[0]);
+        function resetAnnouncementForm() {
+            editingAnnouncementId = null;
+            document.getElementById('announcementForm').reset();
+            document.getElementById('annFormTitle').innerText = "Yeni Duyuru Yayınla";
+            document.getElementById('annSubmitBtn').innerText = "Duyuruyu Yayınla";
+            document.getElementById('annCancelBtn').classList.add('hidden');
+            document.getElementById('annFileHint').classList.add('hidden');
         }
 
-        if (editingAnnouncementId) {
-            // GÜNCELLEME MODU
-            const updateData = { title, content, endDate };
-            if (imageUrl) updateData.imageUrl = imageUrl;
-
-            await db.collection("announcements").doc(editingAnnouncementId).update(updateData);
-            alert("Duyuru başarıyla güncellendi.");
-        } else {
-            // YENİ EKLEME MODU
-            await db.collection("announcements").add({
-                title,
-                content,
-                endDate,
-                imageUrl: imageUrl || "",
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert("Duyuru başarıyla yayınlandı.");
+        function editAnnouncement(id, title, content, endDate) {
+            editingAnnouncementId = id;
+            document.getElementById('annTitle').value = title;
+            document.getElementById('annContent').value = content.replace(/\\n/g, '\n');
+            document.getElementById('annEndDate').value = endDate || '';
+            document.getElementById('annFormTitle').innerText = "Duyuruyu Düzenle";
+            document.getElementById('annSubmitBtn').innerText = "Duyuruyu Güncelle";
+            document.getElementById('annCancelBtn').classList.remove('hidden');
+            document.getElementById('annFileHint').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        resetAnnouncementForm();
-        loadAnnouncements();
-        loadDashboardStats();
-    } catch (error) {
-        alert("Duyuru işlemi hatası: " + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = editingAnnouncementId ? "Duyuruyu Güncelle" : "Duyuruyu Yayınla";
-    }
-}
+        async function handleAddAnnouncement() {
+            const title = document.getElementById('annTitle').value;
+            const content = document.getElementById('annContent').value;
+            const endDate = document.getElementById('annEndDate').value;
+            const imageInput = document.getElementById('annImage');
+            const btn = document.getElementById('annSubmitBtn');
 
-// --- GÜNCELLENMİŞ LİSTE YÜKLEME FONKSİYONU (DÜZENLE BUTONU EKLENDİ) ---
-function loadAnnouncements() {
-    const container = document.getElementById('announcementsList');
-    container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
+            if (!endDate) return alert("Lütfen duyurunun pasife düşeceği bitiş tarihini seçin.");
 
-    db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
-        container.innerHTML = '';
-        if(snapshot.empty) {
-            container.innerHTML = '<p class="text-sm text-gray-500">Yayınlanmış duyuru yok.</p>';
-            return;
+            btn.disabled = true;
+            btn.innerText = "Kaydediliyor...";
+
+            try {
+                let imageUrl = null;
+                if(imageInput.files.length > 0) {
+                    btn.innerText = "Görsel Yükleniyor...";
+                    imageUrl = await uploadToCloudinary(imageInput.files[0]);
+                }
+
+                if (editingAnnouncementId) {
+                    const updateData = { title, content, endDate };
+                    if (imageUrl) updateData.imageUrl = imageUrl;
+                    await db.collection("announcements").doc(editingAnnouncementId).update(updateData);
+                    alert("Duyuru başarıyla güncellendi.");
+                } else {
+                    await db.collection("announcements").add({
+                        title, content, endDate, imageUrl: imageUrl || "",
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert("Duyuru başarıyla yayınlandı.");
+                }
+                resetAnnouncementForm();
+                loadAnnouncements();
+                loadDashboardStats();
+            } catch (error) {
+                alert("Duyuru işlemi hatası: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = editingAnnouncementId ? "Duyuruyu Güncelle" : "Duyuruyu Yayınla";
+            }
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        function loadAnnouncements() {
+            const container = document.getElementById('announcementsList');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
 
-        snapshot.forEach(doc => {
-            const a = doc.data();
-            const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
-            const imgHtml = a.imageUrl ? `<img src="${a.imageUrl}" class="w-full h-40 object-cover rounded-lg my-2 border border-gray-200">` : '';
-            
-            const isActive = !a.endDate || a.endDate >= today;
-            const endDateStr = a.endDate ? a.endDate.split('-').reverse().join('.') : 'Süresiz';
+            db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">Yayınlanmış duyuru yok.</p>';
+                    return;
+                }
 
-            const statusBadge = isActive 
-                ? `<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">Aktif</span>`
-                : `<span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Süresi Doldu (Pasif)</span>`;
+                const today = new Date().toISOString().split('T')[0];
 
-            const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '').replace(/\/$/, '');
-            const appUrl = `${baseUrl}/dashboard.html?id=${doc.id}`;
-            const waText = encodeURIComponent(`*📣 Balkan Yapı Sitesi - Yeni Duyuru*\n*${a.title}*\n\n${a.content}\n\nDetaylar için tıklayın:\n${appUrl}`);
-            const waLink = `https://api.whatsapp.com/send?text=${waText}`;
-
-            // Kodun bozulmaması için tırnakları kaçırıyoruz
-            const safeTitle = a.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const safeContent = a.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
-            const safeEndDate = a.endDate || '';
-
-            container.innerHTML += `
-                <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl relative ${!isActive ? 'opacity-70' : ''}">
-                    <div class="flex justify-between items-start mb-1">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-bold text-gray-800">${a.title}</h4>
-                            ${statusBadge}
-                        </div>
-                        <span class="text-xs text-gray-400 text-right">Yayın: ${dateStr} <br> Bitiş: ${endDateStr}</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-2 whitespace-pre-wrap">${a.content}</p>
-                    ${imgHtml}
+                snapshot.forEach(doc => {
+                    const a = doc.data();
+                    const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
+                    const imgHtml = a.imageUrl ? `<img src="${a.imageUrl}" class="w-full h-40 object-cover rounded-lg my-2 border border-gray-200">` : '';
                     
-                    <div class="flex items-center gap-3 mt-4 pt-3 border-t border-gray-200">
-                        <!-- YENİ DÜZENLE BUTONU -->
-                        <button onclick="editAnnouncement('${doc.id}', '${safeTitle}', '${safeContent}', '${safeEndDate}')" class="text-xs text-gray-500 hover:text-brand hover:underline font-semibold inline-block border-r border-gray-300 pr-3">Düzenle</button>
-                        
-                        <button onclick="deleteAnnouncement('${doc.id}')" class="text-xs text-red-500 hover:underline font-semibold inline-block">Sil</button>
-                        
-                        ${isActive ? `
-                        <a href="${waLink}" target="_blank" class="text-xs bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition ml-auto flex items-center gap-1.5 font-medium shadow-sm">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-                            WhatsApp'ta Bildir
-                        </a>` : ''}
-                    </div>
-                </div>`;
-        });
-    });
-}
+                    const isActive = !a.endDate || a.endDate >= today;
+                    const endDateStr = a.endDate ? a.endDate.split('-').reverse().join('.') : 'Süresiz';
+                    const statusBadge = isActive 
+                        ? `<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">Aktif</span>`
+                        : `<span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Süresi Doldu (Pasif)</span>`;
+
+                    const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '').replace(/\/$/, '');
+                    const appUrl = `${baseUrl}/dashboard.html?id=${doc.id}`;
+                    const waText = encodeURIComponent(`*📣 Balkan Yapı Sitesi - Yeni Duyuru*\n*${a.title}*\n\n${a.content}\n\nDetaylar için tıklayın:\n${appUrl}`);
+                    const waLink = `https://api.whatsapp.com/send?text=${waText}`;
+
+                    const safeTitle = a.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeContent = a.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+                    const safeEndDate = a.endDate || '';
+
+                    container.innerHTML += `
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl relative ${!isActive ? 'opacity-70' : ''}">
+                            <div class="flex justify-between items-start mb-1">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-gray-800">${a.title}</h4>
+                                    ${statusBadge}
+                                </div>
+                                <span class="text-xs text-gray-400 text-right">Yayın: ${dateStr} <br> Bitiş: ${endDateStr}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2 whitespace-pre-wrap">${a.content}</p>
+                            ${imgHtml}
+                            
+                            <div class="flex items-center gap-3 mt-4 pt-3 border-t border-gray-200">
+                                <button onclick="editAnnouncement('${doc.id}', '${safeTitle}', '${safeContent}', '${safeEndDate}')" class="text-xs text-gray-500 hover:text-brand hover:underline font-semibold inline-block border-r border-gray-300 pr-3">Düzenle</button>
+                                <button onclick="deleteAnnouncement('${doc.id}')" class="text-xs text-red-500 hover:underline font-semibold inline-block">Sil</button>
+                                ${isActive ? `<a href="${waLink}" target="_blank" class="text-xs bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition ml-auto flex items-center gap-1.5 font-medium shadow-sm"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg> WhatsApp'ta Bildir</a>` : ''}
+                            </div>
+                        </div>`;
+                });
+            });
+        }
 
         function deleteAnnouncement(id) {
             if(confirm("Duyuruyu silmek istediğinize emin misiniz?")) {
@@ -1105,11 +1026,9 @@ function loadAnnouncements() {
             }
         }
 
-        // --- YÖNETİM KARARLARI VE KATILIMCILAR ---
         function populateDecisionParticipants() {
             const container = document.getElementById('decParticipantsList');
             container.innerHTML = '<p class="text-xs text-gray-400 p-2">Sakinler yükleniyor...</p>';
-            
             db.collection("users").where("isApproved", "==", true).get().then(snap => {
                 container.innerHTML = '';
                 if(snap.empty) {
@@ -1123,8 +1042,7 @@ function loadAnnouncements() {
                         <label class="flex items-center gap-2 p-1.5 hover:bg-gray-100 rounded cursor-pointer border-b border-gray-100 last:border-0">
                             <input type="checkbox" name="decParticipant" value="${label}" class="rounded text-brand focus:ring-brand w-4 h-4" onchange="updateParticipantCount()">
                             <span class="text-sm text-gray-700 font-medium">${label}</span>
-                        </label>
-                    `;
+                        </label>`;
                 });
             });
         }
@@ -1150,24 +1068,19 @@ function loadAnnouncements() {
             const content = document.getElementById('decContent').value;
             const fileInput = document.getElementById('decFile');
             const btn = document.getElementById('decSubmitBtn');
-            
-            // Seçilen katılımcıları topla
             const participants = Array.from(document.querySelectorAll('input[name="decParticipant"]:checked')).map(cb => cb.value);
 
             btn.disabled = true;
             btn.innerText = "Kaydediliyor...";
-
             try {
                 let fileUrl = null;
                 if(fileInput.files.length > 0) {
                     btn.innerText = "Belge Yükleniyor...";
                     fileUrl = await uploadToCloudinary(fileInput.files[0]);
                 }
-
                 if(editingDecisionId) {
                     const updateData = { title, content, participants, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
                     if(fileUrl) updateData.fileUrl = fileUrl;
-
                     await db.collection("decisions").doc(editingDecisionId).update(updateData);
                     alert("Karar başarıyla güncellendi.");
                 } else {
@@ -1201,22 +1114,15 @@ function loadAnnouncements() {
                     const d = doc.data();
                     const dateStr = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
                     const fileHtml = d.fileUrl 
-                        ? `<a href="${d.fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-brand bg-blue-50 px-3 py-1.5 rounded hover:bg-blue-100 transition mt-2">
-                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Belgeyi Gör
-                           </a>` 
-                        : '';
+                        ? `<a href="${d.fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium text-brand bg-blue-50 px-3 py-1.5 rounded hover:bg-blue-100 transition mt-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Belgeyi Gör</a>` : '';
                     
                     const participants = d.participants || [];
                     const partHtml = participants.length > 0 
-                        ? `<div class="mt-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
-                             <p class="text-xs font-semibold text-brand mb-1">Katılımcılar (${participants.length} Kişi):</p>
-                             <p class="text-xs text-gray-600 leading-relaxed">${participants.join(', ')}</p>
-                           </div>`
-                        : '';
+                        ? `<div class="mt-3 bg-blue-50 p-3 rounded-lg border border-blue-100"><p class="text-xs font-semibold text-brand mb-1">Katılımcılar (${participants.length} Kişi):</p><p class="text-xs text-gray-600 leading-relaxed">${participants.join(', ')}</p></div>` : '';
 
                     const safeTitle = d.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     const safeContent = d.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
-                    const safeParts = participants.join('|||'); // Array'i string olarak sakla
+                    const safeParts = participants.join('|||'); 
 
                     container.innerHTML += `
                         <div class="p-4 bg-white border border-gray-200 rounded-xl relative shadow-sm">
@@ -1227,7 +1133,6 @@ function loadAnnouncements() {
                             <p class="text-sm text-gray-600 whitespace-pre-wrap">${d.content}</p>
                             ${partHtml}
                             ${fileHtml}
-                            
                             <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
                                 <button onclick="editDecision('${doc.id}', '${safeTitle}', '${safeContent}', '${safeParts}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded transition font-medium">Düzenle</button>
                                 <button onclick="deleteDecision('${doc.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded transition font-medium ml-auto">Sil</button>
@@ -1241,19 +1146,15 @@ function loadAnnouncements() {
             editingDecisionId = id;
             document.getElementById('decTitle').value = title;
             document.getElementById('decContent').value = content.replace(/\\n/g, '\n');
-            
-            // Katılımcıları işaretle
             const parts = participantsStr ? participantsStr.split('|||') : [];
             document.querySelectorAll('input[name="decParticipant"]').forEach(cb => {
                 cb.checked = parts.includes(cb.value);
             });
             updateParticipantCount();
-            
             document.getElementById('decisionFormTitle').innerText = "Kararı Düzenle";
             document.getElementById('decSubmitBtn').innerText = "Kararı Güncelle";
             document.getElementById('decCancelBtn').classList.remove('hidden');
             document.getElementById('decFileHint').classList.remove('hidden');
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1269,7 +1170,6 @@ function loadAnnouncements() {
         function loadComplaints() {
             const container = document.getElementById('complaintsList');
             container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
-
             db.collection("complaints").orderBy("createdAt", "desc").get().then(snapshot => {
                 container.innerHTML = '';
                 if(snapshot.empty) {
@@ -1282,7 +1182,6 @@ function loadAnnouncements() {
                     const dateStr = c.createdAt ? new Date(c.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
                     const isComplaint = c.type === 'Şikayet';
                     const status = c.status || 'Bekliyor';
-
                     let statusColor = 'bg-yellow-100 text-yellow-700';
                     if(status === 'Çözüldü') statusColor = 'bg-green-100 text-green-700';
                     if(status === 'İptal Edildi') statusColor = 'bg-gray-200 text-gray-700';
@@ -1298,14 +1197,10 @@ function loadAnnouncements() {
                             </div>
                             <h4 class="font-bold text-gray-800">${c.title}</h4>
                             <p class="text-sm text-gray-600 mt-1">${c.message}</p>
-                            
                             <div class="mt-4 pt-3 border-t border-gray-200/50 flex flex-wrap gap-2">
                                 <button onclick="updateComplaintStatus('${id}', 'Çözüldü')" class="text-xs bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded transition">Çözüldü İşaretle</button>
                                 <button onclick="updateComplaintStatus('${id}', 'İptal Edildi')" class="text-xs bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded transition">İptal Et</button>
-                                <button onclick="deleteComplaint('${id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded border border-red-200 transition ml-auto flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    Sil
-                                </button>
+                                <button onclick="deleteComplaint('${id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded border border-red-200 transition ml-auto flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>Sil</button>
                             </div>
                         </div>`;
                 });
@@ -1331,54 +1226,35 @@ function loadAnnouncements() {
         }
 
         function loadDashboardStats() {
-    db.collection("users").where("isApproved", "==", false).get().then(s => {
-        document.getElementById('statPendingCount').innerText = s.size;
-    });
-
-    db.collection("announcements").get().then(s => {
-        const today = new Date().toISOString().split('T')[0];
-        let activeCount = 0;
-        s.forEach(doc => {
-            const data = doc.data();
-            // Eski duyurularda bitiş tarihi yoksa aktif sayıyoruz
-            if (!data.endDate || data.endDate >= today) {
-                activeCount++;
-            }
-        });
-        document.getElementById('statAnnounceCount').innerText = activeCount;
-    });
-
-    db.collection("complaints").get().then(s => {
-        document.getElementById('statComplaintCount').innerText = s.size;
-    });
-
-    db.collection("finance").get().then(s => {
-        let total = 0;
-        s.forEach(doc => {
-            const f = doc.data();
-            if(f.type === 'Gelir') total += f.amount;
-            if(f.type === 'Gider') total -= f.amount;
-        });
-        document.getElementById('statBalance').innerText = total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
-    });
-}
-
-        
+            db.collection("users").where("isApproved", "==", false).get().then(s => document.getElementById('statPendingCount').innerText = s.size);
+            db.collection("announcements").get().then(s => {
+                const today = new Date().toISOString().split('T')[0];
+                let activeCount = 0;
+                s.forEach(doc => {
+                    const data = doc.data();
+                    if (!data.endDate || data.endDate >= today) activeCount++;
+                });
+                document.getElementById('statAnnounceCount').innerText = activeCount;
+            });
+            db.collection("complaints").get().then(s => document.getElementById('statComplaintCount').innerText = s.size);
+            db.collection("finance").get().then(s => {
+                let total = 0;
+                s.forEach(doc => {
+                    const f = doc.data();
+                    if(f.type === 'Gelir') total += f.amount;
+                    if(f.type === 'Gider') total -= f.amount;
+                });
+                document.getElementById('statBalance').innerText = total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+            });
+        }
 
         async function handleAdminPasswordChange() {
             const newPass = document.getElementById('adminNewPass').value;
             const newPassConfirm = document.getElementById('adminNewPassConfirm').value;
             const btn = document.getElementById('adminPassSubmitBtn');
 
-            if (newPass !== newPassConfirm) {
-                alert("Girdiğiniz yeni şifreler eşleşmiyor!");
-                return;
-            }
-
-            if (newPass.length < 4) {
-                alert("Şifreniz en az 4 karakter olmalıdır.");
-                return;
-            }
+            if (newPass !== newPassConfirm) return alert("Girdiğiniz yeni şifreler eşleşmiyor!");
+            if (newPass.length < 4) return alert("Şifreniz en az 4 karakter olmalıdır.");
 
             btn.disabled = true;
             btn.innerText = "Güncelleniyor...";
@@ -1386,14 +1262,9 @@ function loadAnnouncements() {
             try {
                 const newSalt = generateSalt();
                 const newHash = await hashPassword(newPass, newSalt);
-
                 await db.collection("settings").doc("adminProfile").set({
-                    phone: "5305033461",
-                    passwordHash: newHash,
-                    passwordSalt: newSalt,
-                    password: firebase.firestore.FieldValue.delete()
+                    phone: "5305033461", passwordHash: newHash, passwordSalt: newSalt, password: firebase.firestore.FieldValue.delete()
                 }, { merge: true });
-
                 alert("Yönetici şifreniz başarıyla değiştirildi! Lütfen yeni şifrenizle tekrar giriş yapın.");
                 logout(); 
             } catch (error) {
@@ -1403,84 +1274,187 @@ function loadAnnouncements() {
             }
         }
 
-       // YENİ GİRİŞ FONKSİYONU
-async function handleAdminLogin() {
-    const phone = document.getElementById('adminLoginPhone').value.trim();
-    const pass = document.getElementById('adminLoginPass').value;
-    const errorEl = document.getElementById('adminLoginError');
-    const btn = document.getElementById('adminLoginBtn');
+        async function handleAdminLogin() {
+            const phone = document.getElementById('adminLoginPhone').value.trim();
+            const pass = document.getElementById('adminLoginPass').value;
+            const errorEl = document.getElementById('adminLoginError');
+            const btn = document.getElementById('adminLoginBtn');
 
-    btn.disabled = true;
-    btn.innerText = "Giriş Yapılıyor...";
-
-    try {
-        // Ekrana girilen telefonu alıp arka planda e-postaya çeviriyoruz
-        const adminEmail = phone + "@balkan-admin.com"; 
-        
-        // Firebase Authentication ile giriş yapıyoruz (eski db.collection('settings') okuması KALDIRILDI)
-        await firebase.auth().signInWithEmailAndPassword(adminEmail, pass);
-
-        errorEl.classList.add('hidden');
-        document.getElementById('adminLoginScreen').classList.add('hidden');
-        document.getElementById('adminPanelRoot').classList.remove('hidden');
-        loadDashboardStats();
-    } catch (error) {
-        console.error("Giriş Hatası:", error);
-        errorEl.classList.remove('hidden');
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Giriş Yap";
-    }
-}
-
-// YENİ ÇIKIŞ FONKSİYONU
-function logout() {
-    firebase.auth().signOut().then(() => {
-        window.location.reload();
-    });
-}
-
-async function handleSendManualNotification() {
-    const title = document.getElementById('notifTitle').value;
-    const body = document.getElementById('notifBody').value;
-    const btn = document.getElementById('notifSubmitBtn');
-
-    btn.disabled = true;
-    btn.innerText = "Gönderiliyor...";
-
-    try {
-        await db.collection("notifications").add({
-            title: title,
-            body: body,
-            type: "manual",
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Bildirim başarıyla gönderim kuyruğuna eklendi!");
-        document.getElementById('notifTitle').value = "";
-        document.getElementById('notifBody').value = "";
-    } catch (error) {
-        alert("Hata: " + error.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Bildirimi Herkese Gönder";
-    }
-}
-
-// YENİ OTURUM KONTROLÜ (Sayfa yenilendiğinde hattan düşmemek için)
-window.onload = () => {
-    firebase.auth().onAuthStateChanged((user) => {
-        if (user && user.email && user.email.includes('@balkan-admin.com')) {
-            document.getElementById('adminLoginScreen').classList.add('hidden');
-            document.getElementById('adminPanelRoot').classList.remove('hidden');
-            loadDashboardStats();
-        } else {
-            document.getElementById('adminLoginScreen').classList.remove('hidden');
-            document.getElementById('adminPanelRoot').classList.add('hidden');
+            btn.disabled = true;
+            btn.innerText = "Giriş Yapılıyor...";
+            try {
+                const adminEmail = phone + "@balkan-admin.com"; 
+                await firebase.auth().signInWithEmailAndPassword(adminEmail, pass);
+                errorEl.classList.add('hidden');
+                document.getElementById('adminLoginScreen').classList.add('hidden');
+                document.getElementById('adminPanelRoot').classList.remove('hidden');
+                loadDashboardStats();
+            } catch (error) {
+                console.error("Giriş Hatası:", error);
+                errorEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Giriş Yap";
+            }
         }
-    });
-};
 
-        
+        function logout() {
+            firebase.auth().signOut().then(() => window.location.reload());
+        }
+
+        // --- YENİ BİLDİRİM FONKSİYONLARI ---
+        function loadUsersForNotification() {
+            db.collection("users").where("isApproved", "==", true).get().then(snapshot => {
+                const list = document.getElementById('userSelectList');
+                list.innerHTML = '';
+                if(snapshot.empty) {
+                    list.innerHTML = '<p class="text-xs text-gray-400 p-1">Onaylı sakin bulunamadı.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const u = doc.data();
+                    list.innerHTML += `
+                        <label class="flex items-center gap-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="notifUser" value="${doc.id}" class="user-checkbox rounded text-brand focus:ring-brand">
+                            <span>${u.fullName} (${u.block} / D.${u.apartment})</span>
+                        </label>`;
+                });
+            });
+        }
+
+        function toggleSelectAllUsers(btn) {
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            checkboxes.forEach(c => c.checked = !allChecked);
+            btn.innerText = allChecked ? "Tümünü Seç" : "Seçimi Kaldır";
+        }
+
+        async function sendManualNotification() {
+            const title = document.getElementById('notifTitle').value.trim();
+            const body = document.getElementById('notifBody').value.trim();
+            const btn = document.getElementById('notifSubmitBtn');
+            const selectedUsers = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(c => c.value);
+
+            if (!title || !body || selectedUsers.length === 0) {
+                return alert("Lütfen başlık, içerik ve en az bir alıcı seçin.");
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Gönderiliyor...";
+
+            try {
+                const batch = db.batch();
+                const notifRef = db.collection("notifications").doc(); // Geçmiş panosu için merkez
+
+                batch.set(notifRef, {
+                    title: title,
+                    body: body,
+                    recipients: selectedUsers,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Seçilen her kullanıcının kendi bildirim kutusuna ekle
+                selectedUsers.forEach(userId => {
+                    const userNotifRef = db.collection("users").doc(userId).collection("notifications").doc(notifRef.id);
+                    batch.set(userNotifRef, {
+                        title: title,
+                        body: body,
+                        isRead: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+
+                await batch.commit();
+                alert("Bildirim seçili kullanıcılara başarıyla gönderildi!");
+                
+                document.getElementById('notifTitle').value = "";
+                document.getElementById('notifBody').value = "";
+                // Seçimleri temizle
+                document.querySelectorAll('.user-checkbox').forEach(c => c.checked = false);
+                loadAdminNotificationHistory();
+
+            } catch (error) {
+                alert("Hata: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Bildirimi Gönder";
+            }
+        }
+
+        function loadAdminNotificationHistory() {
+            db.collection("notifications").orderBy("createdAt", "desc").get().then(snapshot => {
+                const table = document.getElementById('adminNotifTable');
+                table.innerHTML = '';
+                if(snapshot.empty) {
+                    table.innerHTML = '<tr><td colspan="3" class="p-2 text-center text-gray-400">Henüz gönderilmiş bildirim yok.</td></tr>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const n = doc.data();
+                    const dateStr = n.createdAt ? new Date(n.createdAt.toDate()).toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'Az Önce';
+                    
+                    const safeTitle = n.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeBody = n.body.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+                    const recipientsJson = JSON.stringify(n.recipients || []).replace(/'/g, "\\'");
+
+                    table.innerHTML += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="p-2 text-gray-400 whitespace-nowrap">${dateStr}</td>
+                            <td class="p-2">
+                                <p class="font-bold text-gray-800 leading-tight">${n.title}</p>
+                                <p class="text-[10px] text-gray-500 truncate max-w-[150px] sm:max-w-[200px] mt-0.5">${n.body}</p>
+                            </td>
+                            <td class="p-2 text-right whitespace-nowrap">
+                                <div class="flex flex-col items-end gap-1">
+                                    <button onclick="resendNotification('${safeTitle}', '${safeBody}')" class="text-[10px] text-brand hover:underline">Düzenle/Tekrar</button>
+                                    <button onclick="deleteNotificationFromAll('${doc.id}', ${recipientsJson})" class="text-[10px] text-red-500 hover:underline">Tamamen Sil</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+            });
+        }
+
+        function resendNotification(title, body) {
+            document.getElementById('notifTitle').value = title;
+            document.getElementById('notifBody').value = body.replace(/\\n/g, '\n');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteNotificationFromAll(notifId, recipients) {
+            if (!confirm("Bu bildirimi tüm kullanıcıların gelen kutusundan ve sistemden tamamen silmek istediğinize emin misiniz?")) return;
+
+            try {
+                const batch = db.batch();
+                // Merkezi sistemden sil
+                batch.delete(db.collection("notifications").doc(notifId));
+                
+                // Gönderilen kullanıcıların kutularından sil
+                recipients.forEach(userId => {
+                    batch.delete(db.collection("users").doc(userId).collection("notifications").doc(notifId));
+                });
+
+                await batch.commit();
+                loadAdminNotificationHistory();
+                alert("Bildirim her yerden silindi.");
+            } catch(error) {
+                alert("Silme hatası: " + error.message);
+            }
+        }
+
+        window.onload = () => {
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user && user.email && user.email.includes('@balkan-admin.com')) {
+                    document.getElementById('adminLoginScreen').classList.add('hidden');
+                    document.getElementById('adminPanelRoot').classList.remove('hidden');
+                    loadDashboardStats();
+                } else {
+                    document.getElementById('adminLoginScreen').classList.remove('hidden');
+                    document.getElementById('adminPanelRoot').classList.add('hidden');
+                }
+            });
+        };
     </script>
 </body>
 </html>
