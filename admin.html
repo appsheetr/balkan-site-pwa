@@ -983,9 +983,18 @@
         }
 
         // --- AİDAT YÖNETİMİ BAŞLANGIÇ ---
+        let editingDuesId = null; // Düzenlenen aidatın ID'sini tutacak değişken
+
         function toggleDuesForm() {
             const form = document.getElementById('duesFormContainer');
             form.classList.toggle('hidden');
+            if (form.classList.contains('hidden')) {
+                // Form gizlendiğinde içeriği temizle
+                editingDuesId = null;
+                document.getElementById('duesAmount').value = '';
+                document.getElementById('duesDesc').value = '';
+                document.getElementById('duesSubmitBtn').innerText = "Dönemi Başlat ve Sakinlere Yansıt";
+            }
         }
 
         async function handleCreateDues() {
@@ -999,47 +1008,70 @@
             if (amount <= 0) return alert("Geçerli bir tutar giriniz.");
 
             btn.disabled = true;
-            btn.innerText = "Yansıtılıyor...";
+            btn.innerText = editingDuesId ? "Güncelleniyor..." : "Yansıtılıyor...";
 
             try {
-                const batch = db.batch();
-                const periodRef = db.collection("dues_periods").doc();
-                
-                batch.set(periodRef, {
-                    month: month,
-                    year: year,
-                    amount: amount,
-                    description: desc,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                const usersSnapshot = await db.collection("users").where("isApproved", "==", true).get();
-                
-                usersSnapshot.forEach(userDoc => {
-                    const userData = userDoc.data();
-                    const recordRef = periodRef.collection("records").doc(userDoc.id);
-                    batch.set(recordRef, {
-                        userId: userDoc.id,
-                        fullName: userData.fullName,
-                        block: userData.block,
-                        apartment: userData.apartment,
-                        status: "Ödenmedi",
-                        amount: amount
+                if (editingDuesId) {
+                    // DÜZENLEME (UPDATE) İŞLEMİ
+                    await db.collection("dues_periods").doc(editingDuesId).update({
+                        month: month,
+                        year: year,
+                        amount: amount,
+                        description: desc
                     });
-                });
 
-                await batch.commit();
-                alert(`${month} ${year} Aidatı ${usersSnapshot.size} daireye yansıtıldı!`);
+                    // Ödenmemiş olanların tutarlarını da yeni tutarla güncelle
+                    const recordsSnap = await db.collection("dues_periods").doc(editingDuesId).collection("records").where("status", "==", "Ödenmedi").get();
+                    const batch = db.batch();
+                    recordsSnap.forEach(doc => {
+                        batch.update(doc.ref, { amount: amount });
+                    });
+                    await batch.commit();
+
+                    alert("Aidat dönemi başarıyla güncellendi! (Sadece henüz ödemeyenlerin tutarı güncellendi)");
+                } else {
+                    // YENİ OLUŞTURMA İŞLEMİ
+                    const batch = db.batch();
+                    const periodRef = db.collection("dues_periods").doc();
+                    
+                    batch.set(periodRef, {
+                        month: month,
+                        year: year,
+                        amount: amount,
+                        description: desc,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    const usersSnapshot = await db.collection("users").where("isApproved", "==", true).get();
+                    
+                    usersSnapshot.forEach(userDoc => {
+                        const userData = userDoc.data();
+                        const recordRef = periodRef.collection("records").doc(userDoc.id);
+                        batch.set(recordRef, {
+                            userId: userDoc.id,
+                            fullName: userData.fullName,
+                            block: userData.block,
+                            apartment: userData.apartment,
+                            status: "Ödenmedi",
+                            amount: amount
+                        });
+                    });
+
+                    await batch.commit();
+                    alert(`${month} ${year} Aidatı ${usersSnapshot.size} daireye yansıtıldı!`);
+                }
+
                 document.getElementById('duesAmount').value = '';
                 document.getElementById('duesDesc').value = '';
-                toggleDuesForm();
+                editingDuesId = null;
+                document.getElementById('duesFormContainer').classList.add('hidden');
                 loadDuesPeriods();
 
             } catch (error) {
                 alert("Hata: " + error.message);
             } finally {
                 btn.disabled = false;
-                btn.innerText = "Dönemi Başlat ve Sakinlere Yansıt";
+                btn.innerText = editingDuesId ? "Dönemi Güncelle" : "Dönemi Başlat ve Sakinlere Yansıt";
             }
         }
 
@@ -1057,9 +1089,10 @@
                 snapshot.forEach(doc => {
                     const p = doc.data();
                     const amountFormatted = p.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺';
+                    const safeDesc = p.description.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     
                     container.innerHTML += `
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition cursor-pointer flex flex-col justify-between" onclick="openDuesDetail('${doc.id}', '${p.month}', '${p.year}', '${p.description}', ${p.amount})">
+                        <div class="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition cursor-pointer flex flex-col justify-between" onclick="openDuesDetail('${doc.id}', '${p.month}', '${p.year}', '${safeDesc}', ${p.amount})">
                             <div>
                                 <div class="flex justify-between items-start mb-2">
                                     <span class="bg-brand-light text-brand px-2.5 py-1 rounded font-bold text-xs">${p.month} ${p.year}</span>
@@ -1068,8 +1101,17 @@
                                 <h4 class="font-bold text-gray-700 text-sm mt-3">${p.description}</h4>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-brand">
-                                <span>Durumları Yönet</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                <span class="flex items-center gap-1">Durumları Yönet <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
+                                
+                                <!-- DÜZENLE VE SİL BUTONLARI -->
+                                <div class="flex items-center gap-3">
+                                    <button onclick="event.stopPropagation(); editDuesPeriod('${doc.id}', '${p.month}', '${p.year}', ${p.amount}, '${safeDesc}')" class="text-gray-400 hover:text-brand transition" title="Düzenle">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); deleteDuesPeriod('${doc.id}')" class="text-gray-400 hover:text-red-500 transition" title="Sil">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1077,7 +1119,106 @@
             });
         }
 
-       
+        // DÜZENLEME FONKSİYONU
+        function editDuesPeriod(id, month, year, amount, desc) {
+            editingDuesId = id;
+            document.getElementById('duesMonth').value = month;
+            document.getElementById('duesYear').value = year;
+            document.getElementById('duesAmount').value = amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('duesDesc').value = desc.replace(/\\'/g, "'").replace(/&quot;/g, '"');
+            
+            const form = document.getElementById('duesFormContainer');
+            form.classList.remove('hidden');
+            document.getElementById('duesSubmitBtn').innerText = "Dönemi Güncelle";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // SİLME FONKSİYONU
+        async function deleteDuesPeriod(periodId) {
+            if(!confirm("Bu aidat dönemini tamamen silmek istediğinize emin misiniz?\n\nNot: Önceden ödenmiş ve kasaya işlenmiş olan gelir kayıtları (Finans sekmesinde) silinmez, sadece bu aidat kartı silinir.")) return;
+
+            try {
+                const recordsSnap = await db.collection("dues_periods").doc(periodId).collection("records").get();
+                const batch = db.batch();
+                
+                recordsSnap.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                
+                batch.delete(db.collection("dues_periods").doc(periodId));
+                
+                await batch.commit();
+                alert("Aidat dönemi başarıyla silindi.");
+                loadDuesPeriods();
+            } catch (error) {
+                alert("Silme hatası: " + error.message);
+            }
+        }
+
+        function openDuesDetail(periodId, month, year, desc, amount) {
+            document.getElementById('duesModalTitle').innerText = `${month} ${year} Aidat Durumu`;
+            document.getElementById('duesModalDesc').innerText = `${desc} - ${amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
+            
+            const container = document.getElementById('duesRecordsContainer');
+            container.innerHTML = '<p class="text-sm text-gray-500 col-span-full">Kayıtlar yükleniyor...</p>';
+
+            const modal = document.getElementById('duesDetailModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.children[0].classList.remove('scale-95');
+            }, 10);
+
+            db.collection("dues_periods").doc(periodId).collection("records").onSnapshot(snapshot => {
+                container.innerHTML = '';
+                let paid = 0, unpaid = 0;
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-red-500 col-span-full">Sakin kaydı bulunamadı!</p>';
+                    document.getElementById('duesTotalCount').innerText = "0";
+                    document.getElementById('duesPaidCount').innerText = "0";
+                    document.getElementById('duesUnpaidCount').innerText = "0";
+                    return;
+                }
+
+                const records = [];
+                snapshot.forEach(doc => {
+                    records.push({ id: doc.id, ...doc.data() });
+                });
+
+                records.sort((a, b) => {
+                    if (a.block === b.block) return parseInt(a.apartment) - parseInt(b.apartment);
+                    return a.block.localeCompare(b.block);
+                });
+
+                records.forEach(r => {
+                    const isPaid = r.status === 'Ödendi';
+                    if (isPaid) paid++; else unpaid++;
+
+                    const statusClass = isPaid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200';
+                    const btnColor = isPaid ? 'bg-gray-100 hover:bg-gray-200 text-gray-600' : 'bg-green-500 hover:bg-green-600 text-white';
+                    const btnText = isPaid ? 'Ödenmedi Yap' : 'Ödendi İşaretle';
+
+                    container.innerHTML += `
+                        <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm">
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">${r.block} / D.${r.apartment}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">${r.fullName}</p>
+                                <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${r.status}</span>
+                            </div>
+                            <button onclick="toggleDuesStatus('${periodId}', '${r.id}', '${r.status}', '${r.block}', '${r.apartment}', ${r.amount}, '${month}', '${year}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
+                                ${btnText}
+                            </button>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('duesTotalCount').innerText = snapshot.size;
+                document.getElementById('duesPaidCount').innerText = paid;
+                document.getElementById('duesUnpaidCount').innerText = unpaid;
+            });
+        }
 
         function closeDuesDetailModal() {
             const modal = document.getElementById('duesDetailModal');
@@ -1089,125 +1230,52 @@
             }, 300);
         }
 
-        // 3. Dönem Detayını (Sakinlerin Ödeme Durumunu) Açma
-function openDuesDetail(periodId, month, year, desc, amount) {
-    document.getElementById('duesModalTitle').innerText = `${month} ${year} Aidat Durumu`;
-    document.getElementById('duesModalDesc').innerText = `${desc} - ${amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
-    
-    const container = document.getElementById('duesRecordsContainer');
-    container.innerHTML = '<p class="text-sm text-gray-500 col-span-full">Kayıtlar yükleniyor...</p>';
-
-    const modal = document.getElementById('duesDetailModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        modal.children[0].classList.remove('scale-95');
-    }, 10);
-
-    db.collection("dues_periods").doc(periodId).collection("records").onSnapshot(snapshot => {
-        container.innerHTML = '';
-        let paid = 0, unpaid = 0;
-
-        if (snapshot.empty) {
-            container.innerHTML = '<p class="text-sm text-red-500 col-span-full">Sakin kaydı bulunamadı!</p>';
-            document.getElementById('duesTotalCount').innerText = "0";
-            document.getElementById('duesPaidCount').innerText = "0";
-            document.getElementById('duesUnpaidCount').innerText = "0";
-            return;
-        }
-
-        const records = [];
-        snapshot.forEach(doc => {
-            records.push({ id: doc.id, ...doc.data() });
-        });
-
-        records.sort((a, b) => {
-            if (a.block === b.block) return parseInt(a.apartment) - parseInt(b.apartment);
-            return a.block.localeCompare(b.block);
-        });
-
-        records.forEach(r => {
-            const isPaid = r.status === 'Ödendi';
-            if (isPaid) paid++; else unpaid++;
-
-            const statusClass = isPaid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200';
-            const btnColor = isPaid ? 'bg-gray-100 hover:bg-gray-200 text-gray-600' : 'bg-green-500 hover:bg-green-600 text-white';
-            const btnText = isPaid ? 'Ödenmedi Yap' : 'Ödendi İşaretle';
-
-            // DİKKAT: Butonun onclick eventine blok, daire, tutar ve ay/yıl bilgilerini de gönderiyoruz!
-            container.innerHTML += `
-                <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm">
-                    <div>
-                        <p class="font-bold text-gray-800 text-sm">${r.block} / D.${r.apartment}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">${r.fullName}</p>
-                        <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${r.status}</span>
-                    </div>
-                    <button onclick="toggleDuesStatus('${periodId}', '${r.id}', '${r.status}', '${r.block}', '${r.apartment}', ${r.amount}, '${month}', '${year}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
-                        ${btnText}
-                    </button>
-                </div>
-            `;
-        });
-
-        document.getElementById('duesTotalCount').innerText = snapshot.size;
-        document.getElementById('duesPaidCount').innerText = paid;
-        document.getElementById('duesUnpaidCount').innerText = unpaid;
-    });
-}
-
-// 4. Ödendi / Ödenmedi Butonu (FİNANS ENTEGRASYONLU)
-async function toggleDuesStatus(periodId, recordId, currentStatus, block, apt, amount, month, year) {
-    const newStatus = currentStatus === 'Ödendi' ? 'Ödenmedi' : 'Ödendi';
-    
-    try {
-        const recordRef = db.collection("dues_periods").doc(periodId).collection("records").doc(recordId);
-        const docSnap = await recordRef.get();
-        const data = docSnap.data();
-        
-        const batch = db.batch();
-        
-        if (newStatus === 'Ödendi') {
-            // 1. Yeni bir finans (Gelir) belgesi oluştur
-            const financeRef = db.collection("finance").doc();
-            batch.set(financeRef, {
-                type: 'Gelir',
-                amount: amount,
-                description: `${block} / D.${apt} - ${month} ${year} Aidat Tahsilatı`,
-                collector: 'Sistem (Otomatik)',
-                receiptUrl: '',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+        async function toggleDuesStatus(periodId, recordId, currentStatus, block, apt, amount, month, year) {
+            const newStatus = currentStatus === 'Ödendi' ? 'Ödenmedi' : 'Ödendi';
             
-            // 2. Aidat durumunu güncelle ve oluşturduğumuz gelirin kimliğini (ID) sakla
-            batch.update(recordRef, { 
-                status: newStatus,
-                financeId: financeRef.id 
-            });
-        } else {
-            // 1. Yanlışlıkla basıldıysa ve önceden finans kaydı oluştuysa onu kasadan SİL
-            if (data.financeId) {
-                const financeRef = db.collection("finance").doc(data.financeId);
-                batch.delete(financeRef);
+            try {
+                const recordRef = db.collection("dues_periods").doc(periodId).collection("records").doc(recordId);
+                const docSnap = await recordRef.get();
+                const data = docSnap.data();
+                
+                const batch = db.batch();
+                
+                if (newStatus === 'Ödendi') {
+                    const financeRef = db.collection("finance").doc();
+                    batch.set(financeRef, {
+                        type: 'Gelir',
+                        amount: amount,
+                        description: `${block} / D.${apt} - ${month} ${year} Aidat Tahsilatı`,
+                        collector: 'Sistem (Otomatik)',
+                        receiptUrl: '',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    batch.update(recordRef, { 
+                        status: newStatus,
+                        financeId: financeRef.id 
+                    });
+                } else {
+                    if (data.financeId) {
+                        const financeRef = db.collection("finance").doc(data.financeId);
+                        batch.delete(financeRef);
+                    }
+                    
+                    batch.update(recordRef, { 
+                        status: newStatus,
+                        financeId: firebase.firestore.FieldValue.delete()
+                    });
+                }
+
+                await batch.commit();
+                loadFinanceData();
+                loadDashboardStats();
+                
+            } catch (error) {
+                alert("Durum güncellenirken hata: " + error.message);
             }
-            
-            // 2. Aidat durumunu eski haline getir ve ID'yi temizle
-            batch.update(recordRef, { 
-                status: newStatus,
-                financeId: firebase.firestore.FieldValue.delete()
-            });
         }
-
-        await batch.commit();
-        
-        // İşlem bittiğinde admin panelindeki finans tablosunu ve kasa istatistiklerini anında güncelle
-        loadFinanceData();
-        loadDashboardStats();
-        
-    } catch (error) {
-        alert("Durum güncellenirken hata: " + error.message);
-    }
-}
+        // --- AİDAT YÖNETİMİ BİTİŞ ---
 
         function resetAnnouncementForm() {
             editingAnnouncementId = null;
