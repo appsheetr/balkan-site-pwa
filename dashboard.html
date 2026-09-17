@@ -182,6 +182,26 @@
                             <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Defter</p>
                             <h3 class="font-serif text-base font-semibold text-ink">Sitenin Genel Gelir/Gider Tablosu</h3>
                         </div>
+
+                        <!-- FİLTRE ÇUBUĞU: FİNANS -->
+                        <div class="bg-white p-3 rounded-2xl shadow-plate border border-slate-100 mb-3 space-y-2">
+                            <div class="relative">
+                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path></svg>
+                                <input type="text" id="financeSearchInput" oninput="applyFinanceFilters()" placeholder="Açıklama veya tür ara..." class="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="flex items-center gap-1.5 flex-1 min-w-[130px]">
+                                    <label class="text-[10px] text-slate-400 font-medium shrink-0">Başlangıç</label>
+                                    <input type="date" id="financeStartDate" onchange="applyFinanceFilters()" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-1 min-w-[130px]">
+                                    <label class="text-[10px] text-slate-400 font-medium shrink-0">Bitiş</label>
+                                    <input type="date" id="financeEndDate" onchange="applyFinanceFilters()" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                                </div>
+                                <button onclick="clearFinanceFilters()" class="shrink-0 text-[11px] font-semibold text-slate-500 hover:text-red-500 px-3 py-2 rounded-xl border border-slate-200 hover:border-red-200 transition">Temizle</button>
+                            </div>
+                        </div>
+
                         <div class="bg-white rounded-2xl shadow-plate border border-slate-100 overflow-hidden">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs text-left text-slate-500">
@@ -207,6 +227,26 @@
                         <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Duyuru Panosu</p>
                         <h3 class="font-serif text-base font-semibold text-ink">Tüm Duyurular & Haberler</h3>
                     </div>
+
+                    <!-- FİLTRE ÇUBUĞU: DUYURULAR -->
+                    <div class="bg-white p-3 rounded-2xl shadow-plate border border-slate-100 space-y-2">
+                        <div class="relative">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path></svg>
+                            <input type="text" id="announceSearchInput" oninput="applyAnnouncementFilters()" placeholder="Başlık veya içerikte ara..." class="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1.5 flex-1 min-w-[130px]">
+                                <label class="text-[10px] text-slate-400 font-medium shrink-0">Başlangıç</label>
+                                <input type="date" id="announceStartDate" onchange="applyAnnouncementFilters()" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-1 min-w-[130px]">
+                                <label class="text-[10px] text-slate-400 font-medium shrink-0">Bitiş</label>
+                                <input type="date" id="announceEndDate" onchange="applyAnnouncementFilters()" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                            </div>
+                            <button onclick="clearAnnouncementFilters()" class="shrink-0 text-[11px] font-semibold text-slate-500 hover:text-red-500 px-3 py-2 rounded-xl border border-slate-200 hover:border-red-200 transition">Temizle</button>
+                        </div>
+                    </div>
+
                     <div id="fullAnnounceList" class="space-y-4"></div>
                 </div>
 
@@ -216,6 +256,26 @@
                         <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Resmi Belge</p>
                         <h3 class="font-serif text-base font-semibold text-ink">Yönetim Kararları</h3>
                     </div>
+
+                    <!-- FİLTRE ÇUBUĞU: KARARLAR -->
+                    <div class="bg-white p-3 rounded-2xl shadow-plate border border-slate-100 space-y-2">
+                        <div class="relative">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path></svg>
+                            <input type="text" id="decisionSearchInput" oninput="applyDecisionFilters()" placeholder="Başlık veya içerikte ara..." class="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1.5 flex-1 min-w-[130px]">
+                                <label class="text-[10px] text-slate-400 font-medium shrink-0">Başlangıç</label>
+                                <input type="date" id="decisionStartDate" onchange="applyDecisionFilters()" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-1 min-w-[130px]">
+                                <label class="text-[10px] text-slate-400 font-medium shrink-0">Bitiş</label>
+                                <input type="date" id="decisionEndDate" onchange="applyDecisionFilters()" class="w-full px-2.5 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                            </div>
+                            <button onclick="clearDecisionFilters()" class="shrink-0 text-[11px] font-semibold text-slate-500 hover:text-red-500 px-3 py-2 rounded-xl border border-slate-200 hover:border-red-200 transition">Temizle</button>
+                        </div>
+                    </div>
+
                     <div id="residentDecisionsList" class="space-y-4"></div>
                 </div>
 
@@ -719,96 +779,164 @@
             const tableBody = document.getElementById('residentFinanceTable');
             tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Yükleniyor...</td></tr>';
             db.collection("finance").orderBy("createdAt", "desc").get().then(snapshot => {
-                tableBody.innerHTML = '';
-                if(snapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kayıt bulunmuyor.</td></tr>';
-                    return;
-                }
+                window.financeRawData = [];
                 snapshot.forEach(doc => {
                     const f = doc.data();
-                    const dateStr = f.createdAt ? new Date(f.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-                    const isIncome = f.type === 'Gelir';
-                    const receiptBtn = f.receiptUrl 
-                        ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold">Gör</a>`
-                        : '<span class="text-slate-300">-</span>';
-                    const rowBg = isIncome ? 'bg-green-50/50 hover:bg-green-50' : 'bg-red-50/50 hover:bg-red-50';
-                    const typeBadge = `<span class="${isIncome ? 'text-green-700 bg-green-100/70 border-green-200' : 'text-red-700 bg-red-100/70 border-red-200'} px-2 py-0.5 rounded text-[10px] font-bold border">${f.type}</span>`;
-                    tableBody.innerHTML += `
-                        <tr class="${rowBg} border-b border-slate-100 last:border-b-0 transition-colors">
-                            <td class="px-3 py-3 text-slate-500">${dateStr}</td>
-                            <td class="px-3 py-3 font-medium text-ink">${f.description}</td>
-                            <td class="px-3 py-3">${typeBadge}</td>
-                            <td class="px-3 py-3 text-center">${receiptBtn}</td>
-                            <td class="px-3 py-3 text-right font-serif font-semibold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-600'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</td>
-                        </tr>`;
+                    const dateObj = f.createdAt ? f.createdAt.toDate() : null;
+                    window.financeRawData.push({
+                        dateStr: dateObj ? dateObj.toLocaleDateString('tr-TR') : 'Yeni',
+                        isoDate: dateObj ? dateObj.toISOString().split('T')[0] : '',
+                        description: f.description || '',
+                        type: f.type || '',
+                        receiptUrl: f.receiptUrl,
+                        amount: f.amount
+                    });
                 });
+                applyFinanceFilters();
             });
+        }
+
+        function renderFinanceTable(data) {
+            const tableBody = document.getElementById('residentFinanceTable');
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kriterlere uygun kayıt bulunamadı.</td></tr>';
+                return;
+            }
+            data.forEach(f => {
+                const isIncome = f.type === 'Gelir';
+                const receiptBtn = f.receiptUrl
+                    ? `<a href="${f.receiptUrl}" target="_blank" class="text-brand hover:underline font-semibold">Gör</a>`
+                    : '<span class="text-slate-300">-</span>';
+                const rowBg = isIncome ? 'bg-green-50/50 hover:bg-green-50' : 'bg-red-50/50 hover:bg-red-50';
+                const typeBadge = `<span class="${isIncome ? 'text-green-700 bg-green-100/70 border-green-200' : 'text-red-700 bg-red-100/70 border-red-200'} px-2 py-0.5 rounded text-[10px] font-bold border">${f.type}</span>`;
+                tableBody.innerHTML += `
+                    <tr class="${rowBg} border-b border-slate-100 last:border-b-0 transition-colors">
+                        <td class="px-3 py-3 text-slate-500 whitespace-nowrap">${f.dateStr}</td>
+                        <td class="px-3 py-3 font-medium text-ink">${f.description}</td>
+                        <td class="px-3 py-3">${typeBadge}</td>
+                        <td class="px-3 py-3 text-center">${receiptBtn}</td>
+                        <td class="px-3 py-3 text-right font-serif font-semibold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-600'}">${isIncome ? '+' : '-'} ${f.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</td>
+                    </tr>`;
+            });
+        }
+
+        function applyFinanceFilters() {
+            const search = (document.getElementById('financeSearchInput')?.value || '').trim().toLocaleLowerCase('tr-TR');
+            const start = document.getElementById('financeStartDate')?.value || '';
+            const end = document.getElementById('financeEndDate')?.value || '';
+            const filtered = (window.financeRawData || []).filter(f => {
+                if (search) {
+                    const haystack = `${f.description} ${f.type}`.toLocaleLowerCase('tr-TR');
+                    if (!haystack.includes(search)) return false;
+                }
+                if (start && (!f.isoDate || f.isoDate < start)) return false;
+                if (end && (!f.isoDate || f.isoDate > end)) return false;
+                return true;
+            });
+            renderFinanceTable(filtered);
+        }
+
+        function clearFinanceFilters() {
+            document.getElementById('financeSearchInput').value = '';
+            document.getElementById('financeStartDate').value = '';
+            document.getElementById('financeEndDate').value = '';
+            applyFinanceFilters();
         }
 
         function loadDecisionsData() {
             const container = document.getElementById('residentDecisionsList');
             container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
             db.collection("decisions").orderBy("createdAt", "desc").get().then(snapshot => {
-                container.innerHTML = '';
-                if(snapshot.empty) {
-                    container.innerHTML = '<p class="text-xs text-slate-400">Kayıtlı yönetim kararı bulunmuyor.</p>';
-                    return;
-                }
+                window.decisionsRawData = [];
                 snapshot.forEach(doc => {
                     const d = doc.data();
-                    const dateStr = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
-                    const fileHtml = d.fileUrl 
-                        ? `<a href="${d.fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand bg-brand-light hover:bg-blue-100 px-3 py-2 rounded-lg transition mt-3"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Karar Belgesini İncele</a>` 
-                        : '';
-                    const participants = d.participants || [];
-                    const partHtml = participants.length > 0 
-                        ? `<div class="mt-3 bg-blue-50 p-3 rounded-lg border border-blue-100"><p class="text-xs font-semibold text-brand mb-1">Katılımcılar (${participants.length} Kişi):</p><p class="text-[11px] text-gray-600 leading-relaxed">${participants.join(', ')}</p></div>` : '';
-                    container.innerHTML += `
-                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-brand">
-                            <div class="flex justify-between items-start gap-2 mb-2">
-                                <h4 class="font-bold text-ink text-sm leading-snug">${d.title}</h4>
-                                <span class="shrink-0 text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">${dateStr}</span>
-                            </div>
-                            <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">${d.content}</p>
-                            ${partHtml}
-                            ${fileHtml}
-                        </div>`;
+                    const dateObj = d.createdAt ? d.createdAt.toDate() : null;
+                    window.decisionsRawData.push({
+                        title: d.title || '',
+                        content: d.content || '',
+                        fileUrl: d.fileUrl,
+                        participants: d.participants || [],
+                        dateStr: dateObj ? dateObj.toLocaleDateString('tr-TR') : 'Yeni',
+                        isoDate: dateObj ? dateObj.toISOString().split('T')[0] : ''
+                    });
                 });
+                applyDecisionFilters();
             });
+        }
+
+        function renderDecisionsList(data) {
+            const container = document.getElementById('residentDecisionsList');
+            container.innerHTML = '';
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400">Kriterlere uygun yönetim kararı bulunamadı.</p>';
+                return;
+            }
+            data.forEach(d => {
+                const fileHtml = d.fileUrl
+                    ? `<a href="${d.fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand bg-brand-light hover:bg-blue-100 px-3 py-2 rounded-lg transition mt-3"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Karar Belgesini İncele</a>`
+                    : '';
+                const partHtml = d.participants.length > 0
+                    ? `<div class="mt-3 bg-blue-50 p-3 rounded-lg border border-blue-100"><p class="text-xs font-semibold text-brand mb-1">Katılımcılar (${d.participants.length} Kişi):</p><p class="text-[11px] text-gray-600 leading-relaxed">${d.participants.join(', ')}</p></div>` : '';
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-brand">
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <h4 class="font-bold text-ink text-sm leading-snug">${d.title}</h4>
+                            <span class="shrink-0 text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">${d.dateStr}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">${d.content}</p>
+                        ${partHtml}
+                        ${fileHtml}
+                    </div>`;
+            });
+        }
+
+        function applyDecisionFilters() {
+            const search = (document.getElementById('decisionSearchInput')?.value || '').trim().toLocaleLowerCase('tr-TR');
+            const start = document.getElementById('decisionStartDate')?.value || '';
+            const end = document.getElementById('decisionEndDate')?.value || '';
+            const filtered = (window.decisionsRawData || []).filter(d => {
+                if (search) {
+                    const haystack = `${d.title} ${d.content}`.toLocaleLowerCase('tr-TR');
+                    if (!haystack.includes(search)) return false;
+                }
+                if (start && (!d.isoDate || d.isoDate < start)) return false;
+                if (end && (!d.isoDate || d.isoDate > end)) return false;
+                return true;
+            });
+            renderDecisionsList(filtered);
+        }
+
+        function clearDecisionFilters() {
+            document.getElementById('decisionSearchInput').value = '';
+            document.getElementById('decisionStartDate').value = '';
+            document.getElementById('decisionEndDate').value = '';
+            applyDecisionFilters();
         }
 
         function loadAnnouncementsData() {
             const container = document.getElementById('fullAnnounceList');
             container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
             db.collection("announcements").orderBy("createdAt", "desc").get().then(snapshot => {
-                container.innerHTML = '';
-                if(snapshot.empty) {
-                    container.innerHTML = '<p class="text-xs text-slate-400">Yayınlanmış duyuru bulunmuyor.</p>';
-                    return;
-                }
+                window.announcementsRawData = [];
                 const today = new Date().toISOString().split('T')[0];
                 snapshot.forEach(doc => {
                     const a = doc.data();
-                    const dateStr = a.createdAt ? new Date(a.createdAt.toDate()).toLocaleDateString('tr-TR') : 'Yeni';
+                    const dateObj = a.createdAt ? a.createdAt.toDate() : null;
+                    const dateStr = dateObj ? dateObj.toLocaleDateString('tr-TR') : 'Yeni';
                     window.announcementsMap[doc.id] = { ...a, dateStr };
-                    const isActive = !a.endDate || a.endDate >= today;
-                    let statusBadge = isActive 
-                        ? `<span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full border border-blue-100">Aktif</span>` 
-                        : `<span class="shrink-0 text-[10px] text-slate-400 bg-slate-100 font-medium px-2 py-0.5 rounded-full border border-slate-200">Süresi Doldu</span>`;
-                    let mediaIndicator = '';
-                    if(a.imageUrl) {
-                        mediaIndicator = `<div class="mt-3 text-[10px] font-semibold text-brand flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Medyayı Görüntüle</div>`;
-                    }
-                    container.innerHTML += `
-                        <div onclick="openAnnouncementModal('${doc.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] ${isActive ? 'border-l-gold' : 'border-l-slate-300 opacity-75'} cursor-pointer hover:shadow-plate transition-all group">
-                            <div class="flex justify-between items-start gap-2 mb-1">
-                                <div class="flex items-center gap-2"><h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>${statusBadge}</div>
-                                <span class="shrink-0 text-[10px] text-slate-400 bg-white px-2 py-0.5 rounded-full">${dateStr}</span>
-                            </div>
-                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1">${a.content}</p>
-                            ${mediaIndicator}
-                        </div>`;
+                    window.announcementsRawData.push({
+                        id: doc.id,
+                        title: a.title || '',
+                        content: a.content || '',
+                        imageUrl: a.imageUrl,
+                        dateStr,
+                        isoDate: dateObj ? dateObj.toISOString().split('T')[0] : '',
+                        isActive: !a.endDate || a.endDate >= today
+                    });
                 });
+                applyAnnouncementFilters();
+
                 const targetId = localStorage.getItem('targetAnnounceId');
                 if (targetId && window.announcementsMap[targetId]) {
                     switchTab('announcements');
@@ -816,6 +944,56 @@
                     localStorage.removeItem('targetAnnounceId');
                 }
             });
+        }
+
+        function renderAnnouncementsList(data) {
+            const container = document.getElementById('fullAnnounceList');
+            container.innerHTML = '';
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400">Kriterlere uygun duyuru bulunamadı.</p>';
+                return;
+            }
+            data.forEach(a => {
+                let statusBadge = a.isActive
+                    ? `<span class="shrink-0 text-[10px] text-brand bg-brand-light font-medium px-2 py-0.5 rounded-full border border-blue-100">Aktif</span>`
+                    : `<span class="shrink-0 text-[10px] text-slate-400 bg-slate-100 font-medium px-2 py-0.5 rounded-full border border-slate-200">Süresi Doldu</span>`;
+                let mediaIndicator = '';
+                if(a.imageUrl) {
+                    mediaIndicator = `<div class="mt-3 text-[10px] font-semibold text-brand flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Ekli Medyayı Görüntüle</div>`;
+                }
+                container.innerHTML += `
+                    <div onclick="openAnnouncementModal('${a.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] ${a.isActive ? 'border-l-gold' : 'border-l-slate-300 opacity-75'} cursor-pointer hover:shadow-plate transition-all group">
+                        <div class="flex justify-between items-start gap-2 mb-1">
+                            <div class="flex items-center gap-2"><h4 class="font-semibold text-ink text-sm leading-snug group-hover:text-brand transition-colors">${a.title}</h4>${statusBadge}</div>
+                            <span class="shrink-0 text-[10px] text-slate-400 bg-white px-2 py-0.5 rounded-full">${a.dateStr}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1">${a.content}</p>
+                        ${mediaIndicator}
+                    </div>`;
+            });
+        }
+
+        function applyAnnouncementFilters() {
+            const search = (document.getElementById('announceSearchInput')?.value || '').trim().toLocaleLowerCase('tr-TR');
+            const start = document.getElementById('announceStartDate')?.value || '';
+            const end = document.getElementById('announceEndDate')?.value || '';
+            const filtered = (window.announcementsRawData || []).filter(a => {
+                if (search) {
+                    const haystack = `${a.title} ${a.content}`.toLocaleLowerCase('tr-TR');
+                    if (!haystack.includes(search)) return false;
+                }
+                if (start && (!a.isoDate || a.isoDate < start)) return false;
+                if (end && (!a.isoDate || a.isoDate > end)) return false;
+                return true;
+            });
+            renderAnnouncementsList(filtered);
+        }
+
+        function clearAnnouncementFilters() {
+            document.getElementById('announceSearchInput').value = '';
+            document.getElementById('announceStartDate').value = '';
+            document.getElementById('announceEndDate').value = '';
+            applyAnnouncementFilters();
         }
 
         function openAnnouncementModal(id) {
@@ -924,7 +1102,7 @@
                                         <p class="font-semibold text-xs text-ink truncate">Daire ${res.apartment}: ${res.fullName}</p>
                                         <p class="text-[10px] text-slate-400">${res.status} - ${res.job || 'Belirtilmedi'}</p>
                                     </div>
-                                    <a href="tel:${res.phone}" class="shrink-0 text-brand hover:opacity-75"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h32a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm0 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2zm0 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2z"></path></svg></a>
+                                    <a href="tel:${res.phone}" class="shrink-0 flex items-center gap-1 text-brand hover:opacity-75 text-[10px] font-semibold"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>${res.phone}</a>
                                 </div>`;
                         });
                     }

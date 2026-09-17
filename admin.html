@@ -43,6 +43,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- SheetJS (Excel export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 antialiased font-sans h-screen overflow-hidden">
 
@@ -256,7 +259,17 @@
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                             <div class="p-5 border-b border-gray-100 flex justify-between items-center">
                                 <h3 class="font-bold text-gray-800">Kayıtlı Tüm Site Sakinleri</h3>
-                                <span id="approvedCountBadge" class="bg-blue-100 text-brand font-semibold text-xs px-2.5 py-1 rounded-full">0 Sakin</span>
+                                <div class="flex items-center gap-3">
+                                    <span id="approvedCountBadge" class="bg-blue-100 text-brand font-semibold text-xs px-2.5 py-1 rounded-full">0 Sakin</span>
+                                    <button onclick="exportResidentsToExcel(event)" title="Sakin Listesini Excel Olarak İndir" class="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm">
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" opacity="0.35"/>
+                                            <path d="M14 2v6h6"/>
+                                            <path d="M8.5 12h1.7l1.3 2.2 1.3-2.2h1.7l-2.15 3.3L14.6 19h-1.75l-1.35-2.35L10.15 19H8.4l2.15-3.7L8.5 12z" fill="white"/>
+                                        </svg>
+                                        İndir
+                                    </button>
+                                </div>
                             </div>
                             <div class="p-6 space-y-8" id="residentsGroupContainer"></div>
                         </div>
@@ -834,6 +847,66 @@
                     blockHtml += `</div>`;
                     container.innerHTML += blockHtml;
                 });
+            });
+        }
+
+        function exportResidentsToExcel(evt) {
+            const btn = evt && evt.currentTarget ? evt.currentTarget : null;
+            const originalText = btn ? btn.innerHTML : null;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>Hazırlanıyor...</span>';
+            }
+
+            db.collection("users").where("isApproved", "==", true).get().then(snapshot => {
+                if (snapshot.empty) {
+                    alert("İndirilecek onaylanmış sakin bulunmuyor.");
+                    return;
+                }
+
+                const rows = [];
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    rows.push({
+                        "Ad Soyad": d.fullName || "",
+                        "Telefon": d.phone || "",
+                        "Blok": d.block || "",
+                        "Daire No": d.apartment || "",
+                        "Oturum Durumu": d.status || "",
+                        "Meslek": d.job || ""
+                    });
+                });
+
+                // Blok, ardından daire no'ya göre sırala
+                rows.sort((a, b) => {
+                    if (a["Blok"] !== b["Blok"]) return String(a["Blok"]).localeCompare(String(b["Blok"]));
+                    return (parseInt(a["Daire No"]) || 0) - (parseInt(b["Daire No"]) || 0);
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(rows, {
+                    header: ["Ad Soyad", "Telefon", "Blok", "Daire No", "Oturum Durumu", "Meslek"]
+                });
+                worksheet['!cols'] = [
+                    { wch: 25 }, // Ad Soyad
+                    { wch: 15 }, // Telefon
+                    { wch: 10 }, // Blok
+                    { wch: 10 }, // Daire No
+                    { wch: 15 }, // Oturum Durumu
+                    { wch: 20 }  // Meslek
+                ];
+
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Site Sakinleri");
+
+                const dateStr = new Date().toLocaleDateString('tr-TR').replace(/\./g, '-');
+                XLSX.writeFile(workbook, `Site_Sakinleri_${dateStr}.xlsx`);
+            }).catch(err => {
+                alert("Excel oluşturulurken hata oluştu: " + err.message);
+            }).finally(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
             });
         }
 
