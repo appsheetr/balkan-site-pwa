@@ -1336,9 +1336,15 @@
                                     <p class="text-xs text-gray-500 mt-0.5">${escapeHtmlDues(r.fullName)}</p>
                                     <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${escapeHtmlDues(r.status)}</span>
                                 </div>
-                                <button onclick="toggleDuesStatus('${periodId}', '${r.id}', '${r.status}', '${r.block}', '${r.apartment}', ${r.amount}, '${month}', '${year}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
-                                    ${btnText}
-                                </button>
+                                <div class="flex flex-col items-end gap-2 shrink-0">
+                                    <button onclick="toggleDuesStatus('${periodId}', '${r.id}', '${r.status}', '${r.block}', '${r.apartment}', ${r.amount}, '${month}', '${year}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
+                                        ${btnText}
+                                    </button>
+                                    ${isPaid ? '' : `
+                                    <button onclick="sendDuesReminder('${r.id}', this)" class="text-xs font-semibold px-3 py-2 rounded-lg transition border ${duesRemindedSet.has(periodId + '_' + r.id) ? 'border-green-300 text-green-700 bg-green-50' : 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'}">
+                                        ${duesRemindedSet.has(periodId + '_' + r.id) ? 'Hatırlatıldı ✓' : '🔔 Aidat Hatırlat'}
+                                    </button>`}
+                                </div>
                             </div>`;
                 });
 
@@ -1348,6 +1354,53 @@
             });
 
             container.innerHTML = html;
+        }
+
+        // --- AİDAT HATIRLATMA (tek daireye bildirim + push) ---
+        const duesRemindedSet = new Set(); // bu oturumda hatırlatma gönderilen "dönem_kullanıcı" çiftleri
+
+        async function sendDuesReminder(userId, btn) {
+            const { periodId, month, year } = duesCurrentCtx;
+            const r = duesCurrentRecords.find(x => x.id === userId);
+            if (!r) return alert("Kayıt bulunamadı, lütfen listeyi yenileyin.");
+            if (r.status === 'Ödendi') return alert("Bu daire aidatını zaten ödemiş.");
+
+            const amountStr = Number(r.amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const key = periodId + '_' + userId;
+            const again = duesRemindedSet.has(key) ? "\n\n(Bu daireye bu dönem için daha önce hatırlatma gönderildi.)" : "";
+
+            if (!confirm(`${r.block} / D.${r.apartment} - ${r.fullName}\n${month} ${year} aidatı (${amountStr} ₺) için hatırlatma gönderilsin mi?${again}`)) return;
+
+            const oldText = btn ? btn.innerText : '';
+            if (btn) { btn.disabled = true; btn.innerText = 'Gönderiliyor...'; }
+
+            try {
+                // Kullanıcının push bildirimi açık mı? (sadece bilgi amaçlı)
+                let hasPush = true;
+                try {
+                    const uDoc = await db.collection("users").doc(userId).get();
+                    hasPush = !!(uDoc.exists && uDoc.data().fcmToken);
+                } catch (e) { /* kontrol edilemezse sessizce devam et */ }
+
+                await db.collection("notifications").add({
+                    title: "Aidat Hatırlatma!",
+                    body: `${month} ${year} dönemi için ${amountStr} ₺ aidat borcunuz vardır.`,
+                    recipients: [userId],
+                    type: "finance",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                duesRemindedSet.add(key);
+                if (typeof loadAdminNotificationHistory === 'function') loadAdminNotificationHistory();
+                renderDuesRecords();
+
+                alert(hasPush
+                    ? `${r.fullName} adlı kullanıcıya hatırlatma gönderildi.`
+                    : `${r.fullName} adlı kullanıcıya hatırlatma gönderildi.\n\nNot: Kullanıcının telefon bildirim izni kapalı görünüyor, bildirim sadece uygulamanın bildirim merkezine düşecek.`);
+            } catch (error) {
+                alert("Hatırlatma gönderilemedi: " + error.message);
+                if (btn) { btn.disabled = false; btn.innerText = oldText; }
+            }
         }
 
         function openDuesDetail(periodId, month, year, desc, amount) {
