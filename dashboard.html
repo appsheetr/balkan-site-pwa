@@ -279,6 +279,35 @@
                     <div id="residentDecisionsList" class="space-y-4"></div>
                 </div>
 
+                <!-- SECTION: DUES (AİDATLAR - SALT OKUNUR) -->
+                <div id="view-dues" class="hidden space-y-4">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Şeffaflık</p>
+                        <h3 class="font-serif text-base font-semibold text-ink">Site Aidat Durumu</h3>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-2xl shadow-plate border border-slate-100 space-y-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-medium mb-1">Aidat Dönemi</label>
+                            <select id="duesTabPeriodSelect" onchange="loadDuesTabRecords()" class="w-full px-3 py-2.5 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand bg-white"></select>
+                            <p id="duesTabPeriodInfo" class="text-[10px] text-slate-400 mt-1"></p>
+                        </div>
+                        <div class="relative">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path></svg>
+                            <input type="text" id="duesTabSearchInput" oninput="renderDuesTab()" placeholder="İsim ile ara..." autocomplete="off" class="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand">
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                            <button type="button" id="duesTabFilterBtn-all" onclick="setDuesTabFilter('all')" class="px-3 py-1.5 rounded-full border transition">Toplam: <span id="duesTabTotal">0</span></button>
+                            <button type="button" id="duesTabFilterBtn-paid" onclick="setDuesTabFilter('paid')" class="px-3 py-1.5 rounded-full border transition">Ödeyen: <span id="duesTabPaid">0</span></button>
+                            <button type="button" id="duesTabFilterBtn-unpaid" onclick="setDuesTabFilter('unpaid')" class="px-3 py-1.5 rounded-full border transition">Bekleyen: <span id="duesTabUnpaid">0</span></button>
+                        </div>
+                    </div>
+
+                    <div id="duesTabContainer" class="space-y-6">
+                        <p class="text-xs text-slate-400">Yükleniyor...</p>
+                    </div>
+                </div>
+
                 <!-- SECTION: COMPLAINT FORM -->
                 <div id="view-complaint" class="hidden space-y-4">
                     <div>
@@ -371,6 +400,10 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span class="text-[10px] font-semibold">Finans</span>
             </button>
+            <button onclick="switchTab('dues')" id="nav-btn-dues" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                <span class="text-[10px] font-semibold">Aidatlar</span>
+            </button>
             <button onclick="switchTab('announcements')" id="nav-btn-announcements" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
                 <span class="text-[10px] font-semibold">Duyurular</span>
@@ -404,6 +437,7 @@
             <div class="p-3 space-y-1">
                 <button onclick="switchTab('dashboard')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Özet Ekranı</button>
                 <button onclick="switchTab('finance')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Finans Hareketleri</button>
+                <button onclick="switchTab('dues')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Aidatlar</button>
                 <button onclick="switchTab('announcements')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Duyurular & Haberler</button>
                 <button onclick="switchTab('decisions')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Yönetim Kararları</button>
                 <button onclick="switchTab('complaint')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Şikayet & Öneri Gönder</button>
@@ -714,7 +748,7 @@
             }, 300);
         }
 
-        const tabs = ['dashboard', 'finance', 'announcements', 'complaint', 'residents', 'profile', 'decisions'];
+        const tabs = ['dashboard', 'finance', 'dues', 'announcements', 'complaint', 'residents', 'profile', 'decisions'];
 
         function switchTab(tabId) {
             closeBottomSheet(); 
@@ -729,6 +763,7 @@
 
             if(tabId === 'dashboard') loadDashboardData();
             if(tabId === 'finance') loadFinanceData();
+            if(tabId === 'dues') loadDuesTab();
             if(tabId === 'announcements') loadAnnouncementsData();
             if(tabId === 'decisions') loadDecisionsData();
             if(tabId === 'residents') loadResidentsData();
@@ -1063,6 +1098,169 @@
                 btn.innerText = "Yönetime Gönder";
             }
         }
+
+        // --- AİDATLAR SEKMESİ (SADECE GÖRÜNTÜLEME) ---
+        let duesTabRecords = [];
+        let duesTabStatusFilter = 'all'; // 'all' | 'paid' | 'unpaid'
+        const DUES_TAB_BLOCKS = ["4A", "4A-1", "4B", "4B-1"];
+
+        function duesTabNormalize(str) {
+            return String(str || '').toLocaleLowerCase('tr')
+                .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c');
+        }
+
+        function duesTabEsc(str) {
+            return String(str == null ? '' : str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function setDuesTabFilter(filter) {
+            duesTabStatusFilter = (duesTabStatusFilter === filter) ? 'all' : filter;
+            updateDuesTabFilterButtons();
+            renderDuesTab();
+        }
+
+        function updateDuesTabFilterButtons() {
+            const active = {
+                all: ['bg-slate-800', 'text-white', 'border-slate-800'],
+                paid: ['bg-green-600', 'text-white', 'border-green-600'],
+                unpaid: ['bg-red-500', 'text-white', 'border-red-500']
+            };
+            const idle = {
+                all: ['text-slate-500', 'border-slate-200', 'hover:bg-slate-50'],
+                paid: ['text-green-600', 'border-green-200', 'hover:bg-green-50'],
+                unpaid: ['text-red-500', 'border-red-200', 'hover:bg-red-50']
+            };
+            ['all', 'paid', 'unpaid'].forEach(key => {
+                const btn = document.getElementById('duesTabFilterBtn-' + key);
+                if (!btn) return;
+                btn.classList.remove(...active[key], ...idle[key]);
+                btn.classList.add(...(duesTabStatusFilter === key ? active[key] : idle[key]));
+            });
+        }
+
+        async function loadDuesTab() {
+            const select = document.getElementById('duesTabPeriodSelect');
+            const container = document.getElementById('duesTabContainer');
+            document.getElementById('duesTabSearchInput').value = '';
+            duesTabStatusFilter = 'all';
+            updateDuesTabFilterButtons();
+            container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
+
+            try {
+                const snap = await db.collection("dues_periods").orderBy("createdAt", "desc").get();
+                if (snap.empty) {
+                    select.innerHTML = '';
+                    document.getElementById('duesTabPeriodInfo').innerText = '';
+                    container.innerHTML = '<p class="text-xs text-slate-500 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">Henüz tanımlanmış bir aidat dönemi bulunmuyor.</p>';
+                    return;
+                }
+                const prev = select.value;
+                select.innerHTML = snap.docs.map(d => {
+                    const p = d.data();
+                    const amt = (typeof p.amount === 'number') ? p.amount : 0;
+                    return `<option value="${d.id}" data-info="${duesTabEsc(p.description)} - ${amt.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺">${duesTabEsc(p.month)} ${duesTabEsc(p.year)}</option>`;
+                }).join('');
+                if (prev && Array.from(select.options).some(o => o.value === prev)) select.value = prev;
+                await loadDuesTabRecords();
+            } catch (error) {
+                console.error("Aidatlar sekmesi hatası:", error);
+                container.innerHTML = '<p class="text-xs text-red-500 bg-white p-4 rounded-xl border border-red-100 shadow-sm">Aidat listesi yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
+            }
+        }
+
+        async function loadDuesTabRecords() {
+            const select = document.getElementById('duesTabPeriodSelect');
+            const container = document.getElementById('duesTabContainer');
+            const periodId = select.value;
+            if (!periodId) return;
+
+            const opt = select.options[select.selectedIndex];
+            document.getElementById('duesTabPeriodInfo').innerText = opt ? (opt.dataset.info || '') : '';
+            container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
+
+            try {
+                const snap = await db.collection("dues_periods").doc(periodId).collection("records").get();
+                duesTabRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                const paid = duesTabRecords.filter(r => r.status === 'Ödendi').length;
+                document.getElementById('duesTabTotal').innerText = duesTabRecords.length;
+                document.getElementById('duesTabPaid').innerText = paid;
+                document.getElementById('duesTabUnpaid').innerText = duesTabRecords.length - paid;
+
+                renderDuesTab();
+            } catch (error) {
+                console.error("Aidat kayıtları hatası:", error);
+                container.innerHTML = '<p class="text-xs text-red-500 bg-white p-4 rounded-xl border border-red-100 shadow-sm">Aidat listesi yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
+            }
+        }
+
+        function renderDuesTab() {
+            const container = document.getElementById('duesTabContainer');
+            const q = duesTabNormalize(document.getElementById('duesTabSearchInput').value.trim());
+
+            if (duesTabRecords.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">Bu dönem için kayıt bulunmuyor.</p>';
+                return;
+            }
+
+            const filtered = duesTabRecords.filter(r => {
+                const nameOk = !q || duesTabNormalize(r.fullName).includes(q);
+                const statusOk = duesTabStatusFilter === 'all'
+                    || (duesTabStatusFilter === 'paid' && r.status === 'Ödendi')
+                    || (duesTabStatusFilter === 'unpaid' && r.status !== 'Ödendi');
+                return nameOk && statusOk;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">Seçtiğiniz filtre/aramayla eşleşen sakin bulunamadı.</p>';
+                return;
+            }
+
+            const groups = {};
+            filtered.forEach(r => { (groups[r.block || 'Diğer'] = groups[r.block || 'Diğer'] || []).push(r); });
+            const extra = Object.keys(groups).filter(b => !DUES_TAB_BLOCKS.includes(b)).sort();
+            const ordered = [...DUES_TAB_BLOCKS, ...extra].filter(b => groups[b]);
+
+            let html = '';
+            ordered.forEach(blockName => {
+                const list = groups[blockName].sort((a, b) => (parseInt(a.apartment) || 0) - (parseInt(b.apartment) || 0));
+                const paidCount = list.filter(r => r.status === 'Ödendi').length;
+
+                html += `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
+                            <span class="flex items-center gap-2.5">
+                                <span class="w-9 h-9 shrink-0 rounded-full bg-brand-dark text-gold flex items-center justify-center font-serif font-semibold text-sm ring-2 ring-gold/30">${duesTabEsc(blockName.replace('-1', ''))}</span>
+                                <span class="font-serif font-semibold text-sm text-ink">${duesTabEsc(blockName)} Blok</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded-full border border-slate-100 shrink-0">${paidCount} / ${list.length} Ödedi</span>
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">`;
+
+                list.forEach(r => {
+                    const isPaid = r.status === 'Ödendi';
+                    const isMe = r.id === currentUserId;
+                    const badge = isPaid
+                        ? 'bg-green-100 text-green-700 border-green-200'
+                        : 'bg-red-50 text-red-600 border-red-200';
+                    html += `
+                            <div class="bg-slate-50/70 p-2.5 rounded-xl border ${isMe ? 'border-brand/40 ring-1 ring-brand/20' : 'border-slate-100'} flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-xs text-ink truncate">Daire ${duesTabEsc(r.apartment)}: ${duesTabEsc(r.fullName)}${isMe ? ' <span class="text-brand font-bold">(Siz)</span>' : ''}</p>
+                                </div>
+                                <span class="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold border ${badge}">${duesTabEsc(r.status)}</span>
+                            </div>`;
+                });
+
+                html += `
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+        // --- AİDATLAR SEKMESİ BİTİŞ ---
 
         function loadResidentsData() {
             const container = document.getElementById('residentBlockContainer');
