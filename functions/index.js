@@ -60,6 +60,10 @@ exports.onManualNotification = functions.firestore
         const notificationBody = data.body || "Mesaj detayı bulunamadı.";
         const recipients = data.recipients || []; 
         
+        // YENİ: Gönderilen türü (type) ve hedefi (targetId) dinamik alıyoruz!
+        const notificationType = data.type || 'general';
+        const targetId = data.targetId || '';
+        
         if (recipients.length === 0) return null;
 
         const tokens = [];
@@ -75,8 +79,8 @@ exports.onManualNotification = functions.firestore
                 batch.set(userNotifRef, {
                     title: notificationTitle,
                     body: notificationBody,
-                    type: 'manual', // Sadece okunur, yönlendirme yapmaz
-                    targetId: '',
+                    type: notificationType, // <-- ARTIK ZORLA 'manual' YAZMIYOR
+                    targetId: targetId,     // <-- ARTIK DİNAMİK
                     isRead: false,
                     createdAt: admin.firestore.FieldValue.serverTimestamp()
                 });
@@ -95,11 +99,12 @@ exports.onManualNotification = functions.firestore
                         title: notificationTitle, 
                         body: notificationBody, 
                         icon: "https://cdn-icons-png.flaticon.com/512/1018/1018525.png",
+                        requireInteraction: true, // <-- EKLENDİ (Telefon ekranında daha tutarlı çıkması için)
                         vibrate: [200, 100, 200]
                     }
                 }
             };
-            try { await admin.messaging().sendEachForMulticast(message); } catch (err) {}
+            try { await admin.messaging().sendEachForMulticast(message); } catch (err) { console.error(err); }
         }
         return null;
     });

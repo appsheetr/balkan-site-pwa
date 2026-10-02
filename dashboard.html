@@ -1415,6 +1415,8 @@
                 switchTab('finance');
             } else if (type === 'decisions') {
                 switchTab('decisions');
+            } else if (type === 'information') {
+                switchTab('information'); 
             }
         }
 
@@ -1480,7 +1482,7 @@
 
                         const notifType = notif.type || 'general';
                         const notifTargetId = notif.targetId || '';
-                        const isRoutable = (notifType === 'announcements' || notifType === 'finance' || notifType === 'decisions');
+                        const isRoutable = (notifType === 'announcements' || notifType === 'finance' || notifType === 'decisions' || notifType === 'information');
                         
                         const clickEvent = isRoutable ? `onclick="handleNotificationClick('${doc.id}', '${notifType}', '${notifTargetId}')"` : '';
                         const cursorClass = isRoutable ? 'cursor-pointer hover:bg-slate-50' : '';
