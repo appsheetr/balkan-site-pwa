@@ -144,6 +144,10 @@
                 </button>
                 <div class="my-4 border-t border-blue-800"></div>
 
+                <button onclick="switchSection('information')" id="nav-information" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Bilgilendirme (Yasa)
+                </button>
                 <button onclick="switchSection('settings')" id="nav-settings" class="w-full flex items-center gap-3 px-4 py-3 text-blue-200 hover:bg-blue-900 hover:text-white rounded-lg transition-colors font-medium text-sm text-left">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     Ayarlar
@@ -526,6 +530,35 @@
                         </div>
                     </section>
 
+                    <!-- SECTION: INFORMATION -->
+                    <section id="section-information" class="hidden">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800" id="infoFormTitle">Yeni Bilgilendirme / Yasa Ekle</h3>
+                                <button type="button" onclick="resetInformationForm()" id="infoCancelBtn" class="hidden text-xs text-gray-500 hover:text-gray-800 underline">İptal Et</button>
+                            </div>
+                            <form id="infoForm" onsubmit="event.preventDefault(); handleAddOrUpdateInformation();">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bilgilendirme Başlığı</label>
+                                    <input type="text" id="infoTitle" placeholder="Örn: Kat Mülkiyeti Kanunu - Madde 1" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand font-bold text-gray-800" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">İçerik</label>
+                                    <textarea id="infoContent" rows="6" placeholder="Kuralları veya yasa metnini buraya yapıştırın..." class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand text-sm" required></textarea>
+                                </div>
+                                <button type="submit" id="infoSubmitBtn" class="bg-brand hover:bg-brand-dark text-white font-medium py-2 px-6 rounded-lg transition">Kaydet ve Yayınla</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Yayınlanan İçeriklerin Listelendiği Bölüm -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div class="p-5 border-b border-gray-100">
+                                <h3 class="font-bold text-gray-800">Sisteme Kayıtlı Bilgilendirmeler</h3>
+                            </div>
+                            <div class="p-5 space-y-4" id="informationList"></div>
+                        </div>
+                    </section>
+
                     <!-- SECTION: SETTINGS -->
                     <section id="section-settings" class="hidden">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-lg">
@@ -623,7 +656,7 @@
             return data.secure_url;
         }
 
-        const sections = ['dashboard', 'users', 'residents', 'finance', 'dues', 'announcements', 'complaints', 'settings', 'decisions', 'notifications'];
+        const sections = ['dashboard', 'users', 'residents', 'finance', 'dues', 'announcements', 'complaints', 'settings', 'decisions', 'notifications', 'information'];
         const titles = {
             'dashboard': 'Özet Ekranı',
             'users': 'Sakin Onayları',
@@ -634,7 +667,8 @@
             'decisions': 'Yönetim Kararları',
             'complaints': 'Şikayet ve Öneriler',
             'settings': 'Ayarlar',
-            'notifications': 'Bildirim Gönder'
+            'notifications': 'Bildirim Gönder',
+            'information': 'Bilgilendirme (Site Kuralları & Yasalar)'
         };
 
         let editingDecisionId = null;
@@ -674,6 +708,7 @@
                 loadUsersForNotification();
                 loadAdminNotificationHistory();
             }
+            if(sectionId === 'information') loadInformationList();
         }
 
         function toggleSidebar() {
@@ -2050,6 +2085,91 @@
                 }
             });
         };
+        let editingInformationId = null;
+
+        function resetInformationForm() {
+            editingInformationId = null;
+            document.getElementById('infoForm').reset();
+            document.getElementById('infoFormTitle').innerText = "Yeni Bilgilendirme / Yasa Ekle";
+            document.getElementById('infoSubmitBtn').innerText = "Kaydet ve Yayınla";
+            document.getElementById('infoCancelBtn').classList.add('hidden');
+        }
+
+        async function handleAddOrUpdateInformation() {
+            const title = document.getElementById('infoTitle').value;
+            const content = document.getElementById('infoContent').value;
+            const btn = document.getElementById('infoSubmitBtn');
+
+            btn.disabled = true;
+            btn.innerText = "Kaydediliyor...";
+            try {
+                if(editingInformationId) {
+                    await db.collection("information").doc(editingInformationId).update({
+                        title, content, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert("Bilgilendirme başarıyla güncellendi.");
+                } else {
+                    await db.collection("information").add({
+                        title, content, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert("Yeni bilgilendirme başarıyla eklendi.");
+                }
+                resetInformationForm();
+                loadInformationList();
+            } catch (error) {
+                alert("Hata: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = editingInformationId ? "Güncelle" : "Kaydet ve Yayınla";
+            }
+        }
+
+        function loadInformationList() {
+            const container = document.getElementById('informationList');
+            container.innerHTML = '<p class="text-sm text-gray-500">Yükleniyor...</p>';
+
+            db.collection("information").orderBy("createdAt", "asc").get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">Sistemde kayıtlı bilgilendirme bulunmuyor.</p>';
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const safeTitle = d.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeContent = d.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+
+                    container.innerHTML += `
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl relative shadow-sm">
+                            <h4 class="font-bold text-gray-800">${d.title}</h4>
+                            <p class="text-sm text-gray-600 whitespace-pre-wrap mt-2 line-clamp-3">${d.content}</p>
+                            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-gray-200">
+                                <button onclick="editInformation('${doc.id}', '${safeTitle}', '${safeContent}')" class="text-xs bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1.5 rounded transition font-medium">Düzenle</button>
+                                <button onclick="deleteInformation('${doc.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded transition font-medium ml-auto">Sil</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        function editInformation(id, title, content) {
+            editingInformationId = id;
+            document.getElementById('infoTitle').value = title;
+            document.getElementById('infoContent').value = content.replace(/\\n/g, '\n');
+            document.getElementById('infoFormTitle').innerText = "Bilgilendirmeyi Düzenle";
+            document.getElementById('infoSubmitBtn').innerText = "Bilgileri Güncelle";
+            document.getElementById('infoCancelBtn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteInformation(id) {
+            if(confirm("Bu bilgilendirmeyi sistemden tamamen silmek istediğinize emin misiniz? (Dashboard'dan da silinecektir)")) {
+                db.collection("information").doc(id).delete().then(() => {
+                    alert("Bilgilendirme silindi.");
+                    loadInformationList();
+                }).catch(err => alert("Silme hatası: " + err.message));
+            }
+        }
     </script>
 </body>
 </html>
