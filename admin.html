@@ -560,14 +560,21 @@
                 <button onclick="closeDuesDetailModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition">✕</button>
             </div>
             <!-- İstatistik Çubuğu -->
-            <div class="flex items-center gap-4 px-6 py-3 bg-white border-b border-gray-200 text-xs font-semibold">
-                <span class="text-gray-500">Toplam Daire: <span id="duesTotalCount" class="text-gray-800">0</span></span>
-                <span class="text-green-600">Ödeyen: <span id="duesPaidCount">0</span></span>
-                <span class="text-red-500">Bekleyen: <span id="duesUnpaidCount">0</span></span>
+            <div class="flex flex-wrap items-center gap-2 px-6 py-3 bg-white border-b border-gray-200 text-xs font-semibold">
+                <button type="button" id="duesFilterBtn-all" onclick="setDuesStatusFilter('all')" class="px-3 py-1.5 rounded-full border transition text-gray-500 border-gray-200 hover:bg-gray-50">Toplam Daire: <span id="duesTotalCount" class="text-gray-800">0</span></button>
+                <button type="button" id="duesFilterBtn-paid" onclick="setDuesStatusFilter('paid')" class="px-3 py-1.5 rounded-full border transition text-green-600 border-green-200 hover:bg-green-50">Ödeyen: <span id="duesPaidCount">0</span></button>
+                <button type="button" id="duesFilterBtn-unpaid" onclick="setDuesStatusFilter('unpaid')" class="px-3 py-1.5 rounded-full border transition text-red-500 border-red-200 hover:bg-red-50">Bekleyen: <span id="duesUnpaidCount">0</span></button>
             </div>
-            <!-- Liste -->
+            <!-- İsim Arama -->
+            <div class="px-6 py-3 bg-white border-b border-gray-200">
+                <div class="relative">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path></svg>
+                    <input type="text" id="duesSearchInput" oninput="renderDuesRecords()" placeholder="İsim ile ara..." autocomplete="off" class="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand">
+                </div>
+            </div>
+            <!-- Liste (Bloklara göre) -->
             <div class="p-5 overflow-y-auto flex-1 hide-scrollbar">
-                <div id="duesRecordsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div id="duesRecordsContainer" class="space-y-6">
                     <!-- Sakinler buraya düşecek -->
                 </div>
             </div>
@@ -1228,12 +1235,132 @@
             }
         }
 
+        // --- Aidat detay: arama + blok bazlı listeleme ---
+        let duesRecordsUnsub = null;
+        let duesCurrentRecords = [];
+        let duesCurrentCtx = {};
+        const DUES_BLOCK_ORDER = ["4A", "4A-1", "4B", "4B-1"];
+        let duesStatusFilter = 'all'; // 'all' | 'paid' | 'unpaid'
+
+        function setDuesStatusFilter(filter) {
+            // Aktif filtreye tekrar tıklanırsa tümünü göster
+            duesStatusFilter = (duesStatusFilter === filter) ? 'all' : filter;
+            updateDuesFilterButtons();
+            renderDuesRecords();
+        }
+
+        function updateDuesFilterButtons() {
+            const active = {
+                all: ['bg-gray-800', 'text-white', 'border-gray-800'],
+                paid: ['bg-green-600', 'text-white', 'border-green-600'],
+                unpaid: ['bg-red-500', 'text-white', 'border-red-500']
+            };
+            const idle = {
+                all: ['text-gray-500', 'border-gray-200', 'hover:bg-gray-50'],
+                paid: ['text-green-600', 'border-green-200', 'hover:bg-green-50'],
+                unpaid: ['text-red-500', 'border-red-200', 'hover:bg-red-50']
+            };
+            ['all', 'paid', 'unpaid'].forEach(key => {
+                const btn = document.getElementById('duesFilterBtn-' + key);
+                if (!btn) return;
+                btn.classList.remove(...active[key], ...idle[key]);
+                btn.classList.add(...(duesStatusFilter === key ? active[key] : idle[key]));
+                const num = btn.querySelector('span');
+                if (num) num.classList.toggle('text-gray-800', !(duesStatusFilter === key));
+            });
+        }
+
+        function normalizeTr(str) {
+            return String(str || '').toLocaleLowerCase('tr')
+                .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c');
+        }
+
+        function escapeHtmlDues(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function renderDuesRecords() {
+            const container = document.getElementById('duesRecordsContainer');
+            const { periodId, month, year } = duesCurrentCtx;
+            const q = normalizeTr(document.getElementById('duesSearchInput').value.trim());
+
+            const filtered = duesCurrentRecords.filter(r => {
+                const nameOk = !q || normalizeTr(r.fullName).includes(q);
+                const statusOk = duesStatusFilter === 'all'
+                    || (duesStatusFilter === 'paid' && r.status === 'Ödendi')
+                    || (duesStatusFilter === 'unpaid' && r.status !== 'Ödendi');
+                return nameOk && statusOk;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 text-center py-6">Seçtiğiniz filtre/aramayla eşleşen sakin bulunamadı.</p>';
+                return;
+            }
+
+            // Bloklara göre grupla
+            const groups = {};
+            filtered.forEach(r => {
+                const key = r.block || 'Diğer';
+                (groups[key] = groups[key] || []).push(r);
+            });
+            const extraBlocks = Object.keys(groups).filter(b => !DUES_BLOCK_ORDER.includes(b)).sort();
+            const orderedBlocks = [...DUES_BLOCK_ORDER, ...extraBlocks].filter(b => groups[b]);
+
+            let html = '';
+            orderedBlocks.forEach(blockName => {
+                const list = groups[blockName].sort((a, b) => (parseInt(a.apartment) || 0) - (parseInt(b.apartment) || 0));
+                const paidInBlock = list.filter(r => r.status === 'Ödendi').length;
+
+                html += `
+                    <div>
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
+                            <div class="flex items-center gap-2">
+                                <div class="min-w-[2rem] h-8 px-2 rounded-lg bg-brand text-white flex items-center justify-center font-bold text-sm">${escapeHtmlDues(blockName)}</div>
+                                <h4 class="font-bold text-gray-800">${escapeHtmlDues(blockName)} Blok</h4>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">${paidInBlock} / ${list.length} Ödedi</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
+
+                list.forEach(r => {
+                    const isPaid = r.status === 'Ödendi';
+                    const statusClass = isPaid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200';
+                    const btnColor = isPaid ? 'bg-gray-100 hover:bg-gray-200 text-gray-600' : 'bg-green-500 hover:bg-green-600 text-white';
+                    const btnText = isPaid ? 'Ödenmedi Yap' : 'Ödendi İşaretle';
+
+                    html += `
+                            <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm">
+                                <div>
+                                    <p class="font-bold text-gray-800 text-sm">Daire ${escapeHtmlDues(r.apartment)}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">${escapeHtmlDues(r.fullName)}</p>
+                                    <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${escapeHtmlDues(r.status)}</span>
+                                </div>
+                                <button onclick="toggleDuesStatus('${periodId}', '${r.id}', '${r.status}', '${r.block}', '${r.apartment}', ${r.amount}, '${month}', '${year}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
+                                    ${btnText}
+                                </button>
+                            </div>`;
+                });
+
+                html += `
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
         function openDuesDetail(periodId, month, year, desc, amount) {
             document.getElementById('duesModalTitle').innerText = `${month} ${year} Aidat Durumu`;
             document.getElementById('duesModalDesc').innerText = `${desc} - ${amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
-            
+
             const container = document.getElementById('duesRecordsContainer');
-            container.innerHTML = '<p class="text-sm text-gray-500 col-span-full">Kayıtlar yükleniyor...</p>';
+            container.innerHTML = '<p class="text-sm text-gray-500">Kayıtlar yükleniyor...</p>';
+            document.getElementById('duesSearchInput').value = '';
+            duesStatusFilter = 'all';
+            updateDuesFilterButtons();
+            duesCurrentRecords = [];
+            duesCurrentCtx = { periodId, month, year };
 
             const modal = document.getElementById('duesDetailModal');
             modal.classList.remove('hidden');
@@ -1243,58 +1370,38 @@
                 modal.children[0].classList.remove('scale-95');
             }, 10);
 
-            db.collection("dues_periods").doc(periodId).collection("records").onSnapshot(snapshot => {
-                container.innerHTML = '';
-                let paid = 0, unpaid = 0;
+            // Önceki dinleyici varsa kapat
+            if (duesRecordsUnsub) { duesRecordsUnsub(); duesRecordsUnsub = null; }
 
+            duesRecordsUnsub = db.collection("dues_periods").doc(periodId).collection("records").onSnapshot(snapshot => {
                 if (snapshot.empty) {
-                    container.innerHTML = '<p class="text-sm text-red-500 col-span-full">Sakin kaydı bulunamadı!</p>';
+                    duesCurrentRecords = [];
+                    container.innerHTML = '<p class="text-sm text-red-500">Sakin kaydı bulunamadı!</p>';
                     document.getElementById('duesTotalCount').innerText = "0";
                     document.getElementById('duesPaidCount').innerText = "0";
                     document.getElementById('duesUnpaidCount').innerText = "0";
                     return;
                 }
 
-                const records = [];
+                duesCurrentRecords = [];
+                let paid = 0, unpaid = 0;
                 snapshot.forEach(doc => {
-                    records.push({ id: doc.id, ...doc.data() });
-                });
-
-                records.sort((a, b) => {
-                    if (a.block === b.block) return parseInt(a.apartment) - parseInt(b.apartment);
-                    return a.block.localeCompare(b.block);
-                });
-
-                records.forEach(r => {
-                    const isPaid = r.status === 'Ödendi';
-                    if (isPaid) paid++; else unpaid++;
-
-                    const statusClass = isPaid ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200';
-                    const btnColor = isPaid ? 'bg-gray-100 hover:bg-gray-200 text-gray-600' : 'bg-green-500 hover:bg-green-600 text-white';
-                    const btnText = isPaid ? 'Ödenmedi Yap' : 'Ödendi İşaretle';
-
-                    container.innerHTML += `
-                        <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm">
-                            <div>
-                                <p class="font-bold text-gray-800 text-sm">${r.block} / D.${r.apartment}</p>
-                                <p class="text-xs text-gray-500 mt-0.5">${r.fullName}</p>
-                                <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-bold border ${statusClass}">${r.status}</span>
-                            </div>
-                            <button onclick="toggleDuesStatus('${periodId}', '${r.id}', '${r.status}', '${r.block}', '${r.apartment}', ${r.amount}, '${month}', '${year}')" class="text-xs font-semibold px-3 py-2 rounded-lg transition ${btnColor}">
-                                ${btnText}
-                            </button>
-                        </div>
-                    `;
+                    const r = { id: doc.id, ...doc.data() };
+                    duesCurrentRecords.push(r);
+                    if (r.status === 'Ödendi') paid++; else unpaid++;
                 });
 
                 document.getElementById('duesTotalCount').innerText = snapshot.size;
                 document.getElementById('duesPaidCount').innerText = paid;
                 document.getElementById('duesUnpaidCount').innerText = unpaid;
+
+                renderDuesRecords();
             });
         }
 
         function closeDuesDetailModal() {
             const modal = document.getElementById('duesDetailModal');
+            if (duesRecordsUnsub) { duesRecordsUnsub(); duesRecordsUnsub = null; }
             modal.classList.add('opacity-0');
             modal.children[0].classList.add('scale-95');
             setTimeout(() => {
