@@ -87,7 +87,11 @@
                         </button>
                     </div>
                 </div>
-                <div class="text-right mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="loginRememberMe" checked class="w-4 h-4 accent-brand rounded border-gray-300">
+                        <span class="text-sm text-gray-600">Beni hatırla</span>
+                    </label>
                     <a href="#" onclick="handleForgotPassword()" class="text-sm text-brand hover:underline">Şifremi Unuttum</a>
                 </div>
                 <button type="submit" id="loginSubmitBtn" class="w-full bg-brand hover:bg-brand-dark text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md">Giriş Yap</button>
@@ -206,6 +210,18 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // --- OTURUM AÇIKSA GİRİŞ EKRANINI ATLA (Beni hatırla) ---
+        // Kullanıcı çıkış yapmadığı sürece uygulama kapatılıp açılsa da doğrudan panele geçer.
+        (function autoLoginIfRemembered() {
+            if (localStorage.getItem('userRole') !== 'resident' || !localStorage.getItem('userPhone')) return;
+            const unsub = firebase.auth().onAuthStateChanged(user => {
+                unsub();
+                if (user && user.email && user.email.endsWith('@balkan-resident.com')) {
+                    window.location.replace('dashboard.html');
+                }
+            });
+        })();
 
         // --- ŞİFRE GÜVENLİĞİ: SHA-256 + SALT İLE HASHLEME ---
         // Şifreler artık veritabanına asla düz metin olarak yazılmaz.
@@ -414,6 +430,12 @@
     const pseudoEmail = rawPhone + "@balkan-resident.com";
 
     try {
+        // Beni hatırla: işaretliyse çıkış yapılana kadar kalıcı (LOCAL), değilse sekme/tarayıcı kapanınca biter (SESSION)
+        const remember = document.getElementById('loginRememberMe').checked;
+        await firebase.auth().setPersistence(
+            remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION
+        );
+
         try {
             // Önce gerçek Firebase Authentication girişini dene
             await firebase.auth().signInWithEmailAndPassword(pseudoEmail, pass);
