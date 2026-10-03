@@ -346,6 +346,19 @@
                     <div id="residentBlockContainer" class="space-y-6"></div>
                 </div>
 
+                <!-- SECTION: INFORMATION -->
+                <div id="view-information" class="hidden space-y-4">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Mevzuat</p>
+                        <h3 class="font-serif text-base font-semibold text-ink">Site Kuralları ve Kat Mülkiyeti</h3>
+                    </div>
+                    
+                    <!-- Liste İçin Alan -->
+                    <div id="informationDataContainer" class="space-y-4">
+                        <p class="text-xs text-slate-400">Yükleniyor...</p>
+                    </div>
+                </div>
+
                 <!-- SECTION: PROFILE -->
                 <div id="view-profile" class="hidden space-y-4">
                     <div>
@@ -420,6 +433,10 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 <span class="text-[10px] font-semibold">Sakinler</span>
             </button>
+            <button onclick="switchTab('information')" id="nav-btn-information" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-[10px] font-semibold">Bilgi</span>
+            </button>
             <button onclick="switchTab('profile')" id="nav-btn-profile" class="flex flex-col items-center gap-1 py-2 px-3 rounded-xl text-slate-500 hover:text-brand hover:bg-slate-50 transition-colors flex-1">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 <span class="text-[10px] font-semibold">Profil</span>
@@ -442,6 +459,7 @@
                 <button onclick="switchTab('decisions')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Yönetim Kararları</button>
                 <button onclick="switchTab('complaint')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Şikayet & Öneri Gönder</button>
                 <button onclick="switchTab('residents')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Site Komşularımız</button>
+                <button onclick="switchTab('information')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Bilgilendirme (Yasa ve Kurallar)</button>
                 <button onclick="switchTab('profile')" class="w-full flex items-center gap-3 px-4 py-3.5 text-slate-700 hover:bg-brand-light hover:text-brand rounded-xl transition-colors font-medium text-sm text-left">Profil Ayarları</button>
             </div>
             <div class="h-8"></div>
@@ -748,7 +766,7 @@
             }, 300);
         }
 
-        const tabs = ['dashboard', 'finance', 'dues', 'announcements', 'complaint', 'residents', 'profile', 'decisions'];
+        const tabs = ['dashboard', 'finance', 'dues', 'announcements', 'complaint', 'residents', 'profile', 'decisions', 'information'];
 
         function switchTab(tabId) {
             closeBottomSheet(); 
@@ -767,6 +785,7 @@
             if(tabId === 'announcements') loadAnnouncementsData();
             if(tabId === 'decisions') loadDecisionsData();
             if(tabId === 'residents') loadResidentsData();
+            if(tabId === 'information') loadInformationData();
         }
 
         function loadDashboardData() {
@@ -1397,6 +1416,8 @@
                 switchTab('finance');
             } else if (type === 'decisions') {
                 switchTab('decisions');
+            } else if (type === 'information') {
+                switchTab('information'); 
             }
         }
 
@@ -1462,7 +1483,7 @@
 
                         const notifType = notif.type || 'general';
                         const notifTargetId = notif.targetId || '';
-                        const isRoutable = (notifType === 'announcements' || notifType === 'finance' || notifType === 'decisions');
+                        const isRoutable = (notifType === 'announcements' || notifType === 'finance' || notifType === 'decisions' || notifType === 'information');
                         
                         const clickEvent = isRoutable ? `onclick="handleNotificationClick('${doc.id}', '${notifType}', '${notifTargetId}')"` : '';
                         const cursorClass = isRoutable ? 'cursor-pointer hover:bg-slate-50' : '';
@@ -1538,6 +1559,96 @@
                 snapshot.docs.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
             } catch (error) { alert("Silme işlemi sırasında hata oluştu."); }
+        }
+        function loadInformationData() {
+            const container = document.getElementById('informationDataContainer');
+            container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
+            
+            db.collection("information").orderBy("createdAt", "asc").get().then(snapshot => {
+                container.innerHTML = '';
+                if(snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
+                            <p class="text-xs text-slate-500">Yönetim tarafından henüz bir bilgilendirme veya kural eklenmemiş.</p>
+                        </div>`;
+                    return;
+                }
+                
+                // Pop-up'ta göstermek için verileri geçici bir hafızada (Map) tutuyoruz
+                window.informationMap = {};
+                let counter = 1; // Kartları numaralandırmak için sayaç
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+                    const dateStr = dateObj.toLocaleDateString('tr-TR'); // Tarihi gg.aa.yyyy formatına çevirir
+                    
+                    // Hafızaya kaydet (Pop-up açılırken buradan okuyacak)
+                    window.informationMap[doc.id] = {
+                        title: data.title,
+                        content: data.content,
+                        dateStr: dateStr
+                    };
+                    
+                    // Ekrana basılacak KART tasarımı
+                    container.innerHTML += `
+                        <div onclick="openInformationModal('${doc.id}')" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-[3px] border-l-brand cursor-pointer hover:shadow-plate transition-all group flex gap-4 items-start">
+                            
+                            <!-- Sol Taraf: Numara Yuvarlağı -->
+                            <div class="w-10 h-10 shrink-0 bg-brand-light text-brand font-bold font-serif rounded-full flex items-center justify-center text-lg">
+                                ${counter}
+                            </div>
+                            
+                            <!-- Sağ Taraf: İçerik -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start gap-2 mb-1">
+                                    <h4 class="font-bold text-ink text-sm leading-snug group-hover:text-brand transition-colors truncate">${data.title}</h4>
+                                    <span class="shrink-0 text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">${dateStr}</span>
+                                </div>
+                                
+                                <!-- line-clamp-2 sınıfı metni sadece 2 satır gösterir ve sonuna ... koyar -->
+                                <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 mt-1">${data.content}</p>
+                                
+                                <div class="mt-2 text-[10px] font-semibold text-brand flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                                    Devamını Oku 
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    counter++;
+                });
+            }).catch(err => {
+                container.innerHTML = `
+                    <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
+                        <span class="text-red-500 text-xs">İçerik yüklenirken bir hata oluştu.</span>
+                    </div>`;
+            });
+        }
+        function openInformationModal(id) {
+            const info = window.informationMap[id];
+            if (!info) return;
+            
+            // Pop-up içindeki başlık, tarih ve metni dolduruyoruz
+            document.getElementById('modalTitle').innerText = info.title;
+            document.getElementById('modalDate').innerText = info.dateStr;
+            document.getElementById('modalContent').innerText = info.content;
+            
+            // Bilgilendirmede görsel olmadığı için medya alanını gizliyoruz
+            document.getElementById('modalMediaContainer').classList.add('hidden');
+            document.getElementById('modalMediaContainer').innerHTML = '';
+
+            // Pop-up'ı (Duyurularla ortak kullandığımız modalı) ekranda gösteriyoruz
+            const modal = document.getElementById('announcementModal');
+            const modalContent = document.getElementById('announcementModalContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Yumuşak açılış animasyonu
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
         }
     </script>
     
