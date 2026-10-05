@@ -89,29 +89,7 @@
     </script>
 </head>
 <body class="bg-[#F5F7FB] text-ink antialiased h-[100dvh] w-full flex overflow-hidden">
-<!-- FLOATING ACTION BUTTON (TALEP EKLE) -->
-<button onclick="openRequestModal()" class="fixed bottom-20 md:bottom-8 right-4 md:right-8 z-50 w-14 h-14 bg-brand text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-dark transition-transform transform hover:scale-105 border-2 border-white/20">
-    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-</button>
 
-<!-- TALEP EKLE MODALI -->
-<div id="requestModal" class="fixed inset-0 z-[140] hidden items-center justify-center p-4 bg-ink/60 backdrop-blur-sm opacity-0 transition-opacity duration-300">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 class="font-serif font-bold text-ink text-base">Site İçin Talep Ekle</h3>
-            <button onclick="closeRequestModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500">✕</button>
-        </div>
-        <div class="p-5">
-            <form onsubmit="event.preventDefault(); submitResidentRequest();">
-                <div class="mb-4">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Talebiniz / Açıklama</label>
-                    <textarea id="reqDescription" rows="4" placeholder="Talebinizi veya isteğinizi detaylı bir şekilde yazın..." class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required></textarea>
-                </div>
-                <button type="submit" id="reqSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Talebi Havuza Gönder</button>
-            </form>
-        </div>
-    </div>
-</div>
     <div class="flex-1 flex flex-col h-full w-full overflow-hidden bg-transparent">
         
         <header class="bg-gradient-to-br from-brand-dark via-[#132B5C] to-brand text-white shadow-plate shrink-0">
@@ -360,13 +338,32 @@
                 </div>
 
                 <!-- SECTION: REQUESTS -->
-                <div id="view-requests" class="hidden space-y-4">
-                    <div>
-                        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">Ortak Havuz</p>
-                        <h3 class="font-serif text-base font-semibold text-ink">Sakinlerin Site Talepleri</h3>
-                    </div>
-                    <div id="requestsListContainer" class="space-y-4"></div>
-                </div>
+<div id="view-requests" class="hidden space-y-6">
+    <div>
+        <p class="text-[10px] uppercase tracking-[0.16em] text-gold-dark font-semibold mb-0.5">İletişim</p>
+        <h3 class="font-serif text-base font-semibold text-ink">Site Ortak Talepleri</h3>
+    </div>
+    
+    <!-- Talep Ekleme Formu -->
+    <div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100">
+        <p class="text-xs text-slate-400 mb-4 leading-relaxed">Sitenizle ilgili taleplerinizi buraya yazabilirsiniz. Talebiniz ortak havuza düşecek ve yöneticiler tarafından değerlendirilecektir.</p>
+        <form onsubmit="event.preventDefault(); submitResidentRequest();">
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Talebiniz / Açıklama</label>
+                <textarea id="reqDescription" rows="3" placeholder="Talebinizi detaylı bir şekilde yazın..." class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand" required></textarea>
+            </div>
+            <button type="submit" id="reqSubmitBtn" class="w-full bg-gradient-to-r from-brand to-brand-dark text-white font-semibold py-3 rounded-xl text-sm transition shadow-sm">Talebi Havuza Gönder</button>
+        </form>
+    </div>
+
+    <!-- Talep Listesi -->
+    <div>
+        <h4 class="font-serif text-sm font-semibold text-ink mb-3 pl-1">Talepler Havuzu</h4>
+        <div id="requestsListContainer" class="space-y-4">
+            <p class="text-xs text-slate-400">Yükleniyor...</p>
+        </div>
+    </div>
+</div>
 
                 <!-- SECTION: RESIDENTS LIST -->
                 <div id="view-residents" class="hidden space-y-4">
@@ -1729,26 +1726,50 @@
     });
 }
 
-function openRequestModal() {
-    const modal = document.getElementById('requestModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        modal.children[0].classList.remove('scale-95');
-    }, 10);
+// Talepleri Firebase'den Çeken Fonksiyon
+function loadRequestsData() {
+    const container = document.getElementById('requestsListContainer');
+    container.innerHTML = '<p class="text-xs text-slate-400">Yükleniyor...</p>';
+    
+    db.collection("requests").orderBy("createdAt", "desc").get().then(snapshot => {
+        container.innerHTML = '';
+        if(snapshot.empty) {
+            container.innerHTML = '<div class="bg-white p-5 rounded-2xl shadow-plate border border-slate-100"><p class="text-xs text-slate-500">Henüz oluşturulmuş bir talep bulunmuyor.</p></div>';
+            return;
+        }
+        
+        snapshot.forEach(doc => {
+            const req = doc.data();
+            const dateStr = req.createdAt ? new Date(req.createdAt.toDate()).toLocaleDateString('tr-TR') : '-';
+            const isMine = req.userId === currentUserId; // Sadece kendi talebiyse silme butonu çıkar
+            
+            let statusBadge = '';
+            if(req.status === 'Beklemede') statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold border bg-yellow-50 text-yellow-600 border-yellow-200">Beklemede</span>';
+            else if(req.status === 'Tamamlandı') statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold border bg-green-50 text-green-600 border-green-200">Tamamlandı</span>';
+            else if(req.status === 'İptal Edildi') statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold border bg-slate-100 text-slate-500 border-slate-200">İptal Edildi</span>';
+
+            const deleteBtn = isMine ? `<button onclick="deleteMyRequest('${doc.id}')" class="text-[10px] text-red-500 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 border border-red-100 transition px-2 py-1 rounded">Sil</button>` : '';
+
+            container.innerHTML += `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 ${isMine ? 'border-l-[3px] border-l-brand' : ''}">
+                    <div class="flex justify-between items-start mb-2 gap-2">
+                        <div>
+                            <p class="font-semibold text-sm text-ink">${req.fullName} ${isMine ? '<span class="text-brand text-xs">(Siz)</span>' : ''}</p>
+                            <p class="text-[10px] text-slate-400">${req.block} Blok / D. ${req.apartment} • ${dateStr}</p>
+                        </div>
+                        <div class="flex flex-col items-end gap-1.5 shrink-0">
+                            ${statusBadge}
+                            ${deleteBtn}
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">${req.description}</p>
+                </div>
+            `;
+        });
+    });
 }
 
-function closeRequestModal() {
-    const modal = document.getElementById('requestModal');
-    modal.classList.add('opacity-0');
-    modal.children[0].classList.add('scale-95');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }, 300);
-}
-
+// Yeni Talep Gönderme Fonksiyonu (Modal kaldırıldı, sayfadan direkt gönderir)
 async function submitResidentRequest() {
     const desc = document.getElementById('reqDescription').value.trim();
     const btn = document.getElementById('reqSubmitBtn');
@@ -1768,14 +1789,20 @@ async function submitResidentRequest() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         document.getElementById('reqDescription').value = '';
-        closeRequestModal();
-        switchTab('requests'); // Hemen talepler sekmesine yönlendir
-        alert("Talebiniz havuza eklendi.");
+        loadRequestsData(); // Listeyi anında yeniler ve kullanıcının talebini en üste düşürür
+        alert("Talebiniz başarıyla havuza eklendi.");
     } catch(e) {
         alert("Hata: " + e.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "Talebi Havuza Gönder";
+    }
+}
+
+// Talebi Silme Fonksiyonu
+function deleteMyRequest(id) {
+    if(confirm("Talebinizi geri almak/silmek istediğinize emin misiniz?")) {
+        db.collection("requests").doc(id).delete().then(() => loadRequestsData());
     }
 }
 
